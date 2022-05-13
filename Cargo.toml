@@ -18,12 +18,12 @@ members = [
   "contracts/snip20",
 
   # DAO
-  # - Core
   "contracts/treasury",
   "contracts/treasury_manager",
-  # - Adapters
+  "contracts/adapter_template",
   "contracts/scrt_staking",
   "contracts/rewards_emission",
+  "contracts/market_buy",
 
   "contracts/snip20_staking",
 

@@ -47,6 +47,9 @@ pub mod treasury;
 #[cfg(feature = "adapter")]
 pub mod adapter;
 
+#[cfg(feature = "adapter_template")]
+pub mod adapter_template;
+
 #[cfg(feature = "treasury_manager")]
 pub mod treasury_manager;
 

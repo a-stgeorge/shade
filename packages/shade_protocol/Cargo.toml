@@ -39,7 +39,9 @@ scrt_staking= ["utils", "adapter", "treasury"]
 treasury = ["utils", "adapter", "snip20"]
 treasury_manager = ["adapter"]
 rewards_emission = ["adapter"]
+market_buy = []
 adapter = []
+adapter_template = []
 snip20_staking = ["utils"]
 
 # for quicker tests, cargo test --lib
