@@ -50,6 +50,9 @@ pub mod adapter;
 #[cfg(feature = "adapter_template")]
 pub mod adapter_template;
 
+#[cfg(feature = "market_buy")]
+pub mod market_buy;
+
 #[cfg(feature = "treasury_manager")]
 pub mod treasury_manager;
 

@@ -16,7 +16,7 @@ use crate::{
     state::{
         config_w, self_address_w, 
         viewing_key_r, viewing_key_w,
-        unbonding_w,
+        unbonding_w, asset_list_w,
     },
 };
 
@@ -26,9 +26,12 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     msg: InitMsg,
 ) -> StdResult<InitResponse> {
 
-    let mut admins = msg.admins;
+    let mut admins = match msg.admins {
+        Some(a) => a,
+        None => vec![],
+    };
 
-    if !admins.contains(env.message.sender) {
+    if !admins.contains(&env.message.sender) {
         admins.push(env.message.sender);
     }
 
@@ -62,6 +65,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             ..
         } => handle::receive(deps, env, sender, from, amount, msg),
         HandleMsg::UpdateConfig { config } => handle::try_update_config(deps, env, config),
+        HandleMsg::RegisterAsset { contract } => handle::register_asset(deps, env, contract),
         HandleMsg::Adapter(adapter) => match adapter {
             adapter::SubHandleMsg::Unbond { asset, amount } => handle::unbond(deps, env, asset, amount),
             adapter::SubHandleMsg::Claim { asset } => handle::claim(deps, env, asset),
@@ -76,12 +80,16 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query::config(deps)?),
+        QueryMsg::Expected {
+            offer, amount, desired,
+        } => to_binary(&query::expected(deps, offer, amount, desired)?),
 
         QueryMsg::Adapter(adapter) => match adapter {
             adapter::SubQueryMsg::Balance { asset } => to_binary(&query::balance(deps, asset)?),
             adapter::SubQueryMsg::Claimable { asset } => to_binary(&query::claimable(deps, asset)?),
             adapter::SubQueryMsg::Unbonding { asset } => to_binary(&query::unbonding(deps, asset)?),
             adapter::SubQueryMsg::Unbondable { asset } => to_binary(&query::unbondable(deps, asset)?),
+            adapter::SubQueryMsg::Reserves { asset } => to_binary(&query::reserves(deps, asset)?),
         }
     }
 }

@@ -1,15 +1,21 @@
 use cosmwasm_std::{
-    debug_print, to_binary, Api, BalanceResponse, BankQuery, Binary, Coin, CosmosMsg, Env, Extern,
-    HandleResponse, HumanAddr, Querier, StakingMsg, StdError, StdResult, Storage, Uint128,
-    Validator,
+    debug_print, to_binary, from_binary, Api, 
+    BalanceResponse, BankQuery, Binary, Coin, 
+    CosmosMsg, Env, Extern,
+    HandleResponse, HumanAddr, Querier, StakingMsg, 
+    StdError, StdResult, Storage, Uint128,
 };
 
-use secret_toolkit::snip20::{deposit_msg, redeem_msg};
+use secret_toolkit::snip20::{
+    deposit_msg, redeem_msg,
+    register_receive_msg, set_viewing_key_msg,
+};
 
 use shade_protocol::{
-    market_buy::{HandleAnswer, ValidatorBounds, Config},
+    market_buy::{HandleAnswer, Config, RecvMsg},
     treasury::Flag,
     adapter,
+    snip20,
     utils::{
         generic_response::ResponseStatus,
         asset::{
@@ -26,6 +32,9 @@ use crate::{
         config_r, config_w,
         self_address_r,
         unbonding_w, unbonding_r,
+        asset_r, asset_w,
+        asset_list_r, asset_list_w,
+        viewing_key_r,
     },
 };
 
@@ -35,7 +44,7 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
     _sender: HumanAddr,
     _from: HumanAddr,
     amount: Uint128,
-    _msg: Option<Binary>,
+    msg: Option<Binary>,
 ) -> StdResult<HandleResponse> {
     debug_print!("Received {}", amount);
 
@@ -48,7 +57,7 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
         }
     };
 
-    let full_asset = match asset_r(&deps.storage).load(env.message.sender.as_str().as_bytes())? {
+    let full_asset = match asset_r(&deps.storage).may_load(env.message.sender.as_str().as_bytes())? {
         Some(a) => a,
         None => {
             return Err(StdError::generic_err("Unrecognized Asset"));
@@ -78,8 +87,8 @@ pub fn try_update_config<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     let cur_config = config_r(&deps.storage).load()?;
 
-    if env.message.sender != cur_config.admin {
-        return Err(StdError::Unauthorized { backtrace: None });
+    if !cur_config.admins.contains(&env.message.sender) {
+        return Err(StdError::unauthorized());
     }
 
     // Save new info
@@ -97,8 +106,53 @@ pub fn try_update_config<S: Storage, A: Api, Q: Querier>(
 pub fn register_asset<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    asset: Contract,
+    contract: Contract,
 ) -> StdResult<HandleResponse> {
+    let config = config_r(&deps.storage).load()?;
+
+    if !config.admins.contains(&env.message.sender) {
+        return Err(StdError::unauthorized());
+    }
+
+    asset_list_w(&mut deps.storage).update(|mut list| {
+        if list.contains(&contract.address.clone()) {
+            return Err(StdError::generic_err("Asset already registered"));
+        }
+        list.push(contract.address.clone());
+        Ok(list)
+    })?;
+
+    asset_w(&mut deps.storage).save(
+        contract.address.to_string().as_bytes(),
+        &snip20::fetch_snip20(&contract, &deps.querier)?,
+    )?;
+
+    unbonding_w(&mut deps.storage).save(&contract.address.as_str().as_bytes(), &Uint128::zero())?;
+
+    Ok(HandleResponse {
+        messages: vec![
+            // Register contract in asset
+            register_receive_msg(
+                env.contract_code_hash.clone(),
+                None,
+                256,
+                contract.code_hash.clone(),
+                contract.address.clone(),
+            )?,
+            // Set viewing key
+            set_viewing_key_msg(
+                viewing_key_r(&deps.storage).load()?,
+                None,
+                256,
+                contract.code_hash.clone(),
+                contract.address.clone(),
+            )?,
+        ],
+        log: vec![],
+        data: Some(to_binary(&HandleAnswer::RegisterAsset {
+            status: ResponseStatus::Success,
+        })?),
+    })
 }
 
 /* Claim rewards and restake, hold enough for pending unbondings
@@ -114,7 +168,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
 
     let config = config_r(&deps.storage).load()?;
 
-    let full_asset = match asset_r(&deps.storage).load(env.message.sender.as_str().as_bytes())? {
+    let full_asset = match asset_r(&deps.storage).may_load(env.message.sender.as_str().as_bytes())? {
         Some(a) => a,
         None => {
             return Err(StdError::generic_err("Unrecognized Asset"));
@@ -150,15 +204,15 @@ pub fn unbond<S: Storage, A: Api, Q: Querier>(
     }
     */
 
-    let full_asset = match asset_r(&deps.storage).load(env.message.sender.as_str().as_bytes())? {
+    let full_asset = match asset_r(&deps.storage).may_load(env.message.sender.as_str().as_bytes())? {
         Some(a) => a,
         None => {
             return Err(StdError::generic_err("Unrecognized Asset"));
         }
-    }
+    };
 
     Ok(HandleResponse {
-        messages,
+        messages: vec![],
         log: vec![],
         data: Some(to_binary(&adapter::HandleAnswer::Unbond {
             status: ResponseStatus::Success,
@@ -172,12 +226,12 @@ pub fn unbond<S: Storage, A: Api, Q: Querier>(
  */
 pub fn claim<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
-    _env: Env,
+    env: Env,
     asset: HumanAddr,
 ) -> StdResult<HandleResponse> {
     let config = config_r(&deps.storage).load()?;
 
-    let full_asset = match asset_r(&deps.storage).load(env.message.sender.as_str().as_bytes())? {
+    let full_asset = match asset_r(&deps.storage).may_load(env.message.sender.as_str().as_bytes())? {
         Some(a) => a,
         None => {
             return Err(StdError::generic_err("Unrecognized Asset"));

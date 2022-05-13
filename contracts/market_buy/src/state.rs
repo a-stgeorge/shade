@@ -1,6 +1,6 @@
 use cosmwasm_std::{HumanAddr, Storage, Uint128};
 use cosmwasm_storage::{bucket, bucket_read, ReadonlyBucket, Bucket, singleton, singleton_read, ReadonlySingleton, Singleton};
-use shade_protocol::market_buy;
+use shade_protocol::{market_buy, snip20::Snip20Asset};
 
 pub static CONFIG_KEY: &[u8] = b"config";
 pub static SELF_ADDRESS: &[u8] = b"self_address";

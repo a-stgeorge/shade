@@ -17,7 +17,8 @@ CONTRACTS = \
 		airdrop governance snip20_staking mint mint_router \
 		treasury treasury_manager scrt_staking rewards_emission \
     oracle initializer snip20 adapter_template \
-		mock_band mock_secretswap_pair mock_sienna_pair
+		mock_band mock_secretswap_pair mock_sienna_pair \
+		market_buy
 
 debug: setup
 	(cd ${contracts_dir}; ${build-debug})

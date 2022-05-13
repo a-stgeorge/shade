@@ -51,7 +51,7 @@ pub enum HandleMsg {
         config: Config,
     },
     RegisterAsset {
-        asset: Contract,
+        contract: Contract,
     },
     Adapter(adapter::SubHandleMsg),
 }
@@ -89,6 +89,7 @@ pub enum QueryMsg {
         amount: Uint128,
         desired: HumanAddr,
     },
+    Adapter(adapter::SubQueryMsg),
 }
 
 impl Query for QueryMsg {
