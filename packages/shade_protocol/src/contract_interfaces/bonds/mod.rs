@@ -21,6 +21,8 @@ use schemars::JsonSchema;
 use secret_toolkit::utils::HandleCallback;
 use serde::{Deserialize, Serialize};
 
+use super::oracles::band::ReferenceData;
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
     pub limit_admin: HumanAddr,
@@ -381,4 +383,11 @@ pub struct BondOpportunity {
 #[serde(rename_all = "snake_case")]
 pub struct SlipMsg {
     pub minimum_expected_amount: Uint128,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct OracleAnswer {
+    pub key: String,
+    pub price: ReferenceData
 }
