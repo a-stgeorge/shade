@@ -1,39 +1,55 @@
 use colored::*;
 use cosmwasm_math_compat::Uint128;
 use cosmwasm_std::{to_binary, Binary, HumanAddr};
-use network_integration::utils::store_struct;
 use network_integration::{
     contract_helpers::{
         governance::{
-            add_contract, create_and_trigger_proposal, create_proposal, get_contract,
-            get_latest_proposal, init_with_gov, trigger_latest_proposal,
+            add_contract,
+            create_and_trigger_proposal,
+            create_proposal,
+            get_contract,
+            get_latest_proposal,
+            init_with_gov,
+            trigger_latest_proposal,
         },
         initializer::initialize_initializer,
         minter::{get_balance, initialize_minter, setup_minters},
         stake::setup_staker,
     },
     utils::{
-        generate_label, print_contract, print_header, print_vec, print_warning, ACCOUNT_KEY,
-        AIRDROP_FILE, GAS, GOVERNANCE_FILE, MOCK_BAND_FILE, ORACLE_FILE, SNIP20_FILE, STORE_GAS,
+        generate_label,
+        print_contract,
+        print_header,
+        print_vec,
+        print_warning,
+        store_struct,
+        ACCOUNT_KEY,
+        AIRDROP_FILE,
+        GAS,
+        GOVERNANCE_FILE,
+        MOCK_BAND_FILE,
+        ORACLE_FILE,
+        SNIP20_FILE,
+        STORE_GAS,
         VIEW_KEY,
     },
 };
-use query_authentication::transaction::PubKey;
-use query_authentication::{permit::Permit, transaction::PermitSignature};
+use query_authentication::{
+    permit::Permit,
+    transaction::{PermitSignature, PubKey},
+};
 use rs_merkle::{algorithms::Sha256, Hasher, MerkleTree};
 use secretcli::secretcli::{account_address, create_permit, handle, init, query};
 use serde::Serialize;
 use serde_json::Result;
-use shade_protocol::contract_interfaces::airdrop::account::FillerMsg;
-use shade_protocol::utils::asset::Contract;
-use shade_protocol::utils::generic_response::ResponseStatus;
 use shade_protocol::{
+    band,
     contract_interfaces::airdrop::{
         self,
-        account::{AccountPermitMsg, AddressProofMsg},
+        account::{AccountPermitMsg, AddressProofMsg, FillerMsg},
         claim_info::RequiredTask,
     },
-    band, governance,
+    governance,
     governance::{
         proposal::ProposalStatus,
         vote::{UserVote, Vote},
@@ -41,8 +57,12 @@ use shade_protocol::{
     oracle,
     snip20::{self, InitConfig, InitialBalance},
     staking,
+    utils::{asset::Contract, generic_response::ResponseStatus},
 };
 use std::{thread, time};
+use shade_protocol::contract_interfaces::oracles::{band, oracle};
+use shade_protocol::contract_interfaces::{snip20, staking};
+use shade_protocol::contract_interfaces::snip20::InitConfig;
 
 #[test]
 fn run_testnet() -> Result<()> {
@@ -329,6 +349,7 @@ fn run_testnet() -> Result<()> {
         handle(
             &snip20::HandleMsg::Send {
                 recipient: HumanAddr::from(governance.address.clone()),
+                recipient_code_hash: None,
                 amount: Uint128::new(1000000),
                 msg: Some(to_binary(&proposal).unwrap()),
                 memo: None,

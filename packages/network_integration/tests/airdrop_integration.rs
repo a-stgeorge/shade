@@ -1,51 +1,72 @@
 use colored::*;
 use cosmwasm_math_compat::Uint128;
 use cosmwasm_std::{to_binary, Binary, HumanAddr};
-use network_integration::utils::store_struct;
 use network_integration::{
     contract_helpers::{
         governance::{
-            add_contract, create_and_trigger_proposal, create_proposal, get_contract,
-            get_latest_proposal, init_with_gov, trigger_latest_proposal,
+            add_contract,
+            create_and_trigger_proposal,
+            create_proposal,
+            get_contract,
+            get_latest_proposal,
+            init_with_gov,
+            trigger_latest_proposal,
         },
         initializer::initialize_initializer,
         minter::{get_balance, initialize_minter, setup_minters},
         stake::setup_staker,
     },
     utils::{
-        generate_label, print_contract, print_header, print_vec, print_warning, ACCOUNT_KEY,
-        AIRDROP_FILE, GAS, GOVERNANCE_FILE, MOCK_BAND_FILE, ORACLE_FILE, SNIP20_FILE, STORE_GAS,
+        generate_label,
+        print_contract,
+        print_header,
+        print_vec,
+        print_warning,
+        store_struct,
+        ACCOUNT_KEY,
+        AIRDROP_FILE,
+        GAS,
+        GOVERNANCE_FILE,
+        MOCK_BAND_FILE,
+        ORACLE_FILE,
+        SNIP20_FILE,
+        STORE_GAS,
         VIEW_KEY,
     },
 };
-use query_authentication::transaction::PubKey;
-use query_authentication::{permit::Permit, transaction::PermitSignature};
+use query_authentication::{
+    permit::Permit,
+    transaction::{PermitSignature, PubKey},
+};
 use rs_merkle::{algorithms::Sha256, Hasher, MerkleTree};
-use secretcli::cli_types::NetContract;
-use secretcli::secretcli::{
-    account_address, create_key_account, create_permit, handle, init, query, Report,
+use secretcli::{
+    cli_types::NetContract,
+    secretcli::{account_address, create_key_account, create_permit, handle, init, query, Report},
 };
 use serde::Serialize;
 use serde_json::Result;
-use shade_protocol::contract_interfaces::airdrop::account::{AddressProofPermit, FillerMsg};
-use shade_protocol::utils::asset::Contract;
-use shade_protocol::utils::generic_response::ResponseStatus;
 use shade_protocol::{
-    contract_interfaces::airdrop::{
-        self,
-        account::{AccountPermitMsg, AddressProofMsg},
-        claim_info::RequiredTask,
+    contract_interfaces::{
+        airdrop::{
+            self,
+            account::{AccountPermitMsg, AddressProofMsg, AddressProofPermit, FillerMsg},
+            claim_info::RequiredTask,
+        },
+        governance::{
+            self,
+            proposal::ProposalStatus,
+            vote::{UserVote, Vote},
+        },
+        oracles::{band, oracle},
+        snip20,
+        snip20::{InitConfig, InitialBalance},
+        staking,
     },
-    contract_interfaces::governance::{
-        self,
-        proposal::ProposalStatus,
-        vote::{UserVote, Vote},
-    },
-    contract_interfaces::oracles::{oracle, band},
     snip20::{self, InitConfig, InitialBalance},
-    contract_interfaces::staking,
+    utils::{asset::Contract, generic_response::ResponseStatus},
 };
 use std::{thread, time};
+use network_integration::contract_helpers::airdrop::proof_from_tree;
 
 fn create_signed_permit<T: Clone + Serialize>(
     params: T,
@@ -83,39 +104,6 @@ fn create_signed_permit<T: Clone + Serialize>(
     permit
 }
 
-fn proof_from_tree(indices: &Vec<usize>, tree: &Vec<Vec<[u8; 32]>>) -> Vec<Binary> {
-    let mut current_indices: Vec<usize> = indices.clone();
-    let mut helper_nodes: Vec<Binary> = Vec::new();
-
-    for layer in tree {
-        let mut siblings: Vec<usize> = Vec::new();
-        let mut parents: Vec<usize> = Vec::new();
-
-        for index in current_indices.iter() {
-            if index % 2 == 0 {
-                siblings.push(index + 1);
-                parents.push(index / 2);
-            } else {
-                siblings.push(index - 1);
-                parents.push((index - 1) / 2);
-            }
-        }
-
-        for sibling in siblings {
-            if !current_indices.contains(&sibling) {
-                if let Some(item) = layer.get(sibling) {
-                    helper_nodes.push(Binary(item.to_vec()));
-                }
-            }
-        }
-
-        parents.dedup();
-        current_indices = parents.clone();
-    }
-
-    helper_nodes
-}
-
 fn setup_contracts(
     dump_address: Option<HumanAddr>,
     start_date: Option<u64>,
@@ -148,6 +136,7 @@ fn setup_contracts(
             enable_redeem: Some(true),
             enable_mint: Some(true),
             enable_burn: Some(false),
+            enable_transfer: None,
         }),
     };
 
@@ -214,6 +203,7 @@ fn setup_contracts(
     handle(
         &snip20::HandleMsg::Send {
             recipient: HumanAddr::from(airdrop.address.clone()),
+            recipient_code_hash: None,
             amount: airdrop_total,
             msg: None,
             memo: None,

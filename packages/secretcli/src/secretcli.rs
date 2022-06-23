@@ -328,6 +328,8 @@ pub fn init<Message: serde::Serialize>(
 ) -> Result<NetContract> {
     io::stdout().flush();
     let store_response = store_contract(contract_file, Option::from(&*sender), store_gas, backend)?;
+    // Helps for debugging
+    println!("{}", store_response.txhash);
     let store_query = query_hash(store_response.txhash)?;
     let mut contract = NetContract {
         label: label.to_string(),
@@ -457,6 +459,7 @@ pub fn handle<Message: serde::Serialize>(
 ) -> Result<(TxCompute, TxQuery)> {
     let tx = execute_contract(contract, msg, sender, gas, backend, amount, max_tries)?;
 
+    println!("{}", tx.txhash);
     let computed_response = compute_hash(tx.txhash.clone())?;
     let queried_response = query_hash(tx.txhash)?;
 

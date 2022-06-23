@@ -1,19 +1,26 @@
 use cosmwasm_math_compat::Uint128;
 use cosmwasm_std::{Binary, HumanAddr};
 use network_integration::utils::{
-    generate_label, print_contract, print_header, store_struct, AIRDROP_FILE, GAS, STORE_GAS,
+    generate_label,
+    print_contract,
+    print_header,
+    store_struct,
+    AIRDROP_FILE,
+    GAS,
+    STORE_GAS,
 };
-use rs_merkle::algorithms::Sha256;
-use rs_merkle::{Hasher, MerkleTree};
-use secretcli::cli_types::NetContract;
-use secretcli::secretcli::{handle, init};
+use rs_merkle::{algorithms::Sha256, Hasher, MerkleTree};
+use secretcli::{
+    cli_types::NetContract,
+    secretcli::{handle, init},
+};
 use serde::{Deserialize, Serialize};
-use shade_protocol::utils::asset::Contract;
 use shade_protocol::{
-    contract_interfaces::airdrop,
-    contract_interfaces::snip20
+    contract_interfaces::{airdrop, snip20},
+    utils::asset::Contract,
 };
 use std::{env, fs};
+use network_integration::contract_helpers::airdrop::proof_from_tree;
 
 #[derive(Serialize, Deserialize)]
 struct Args {
@@ -34,6 +41,7 @@ struct Args {
     // Other stuff
     fund_airdrop: bool,
     shade: Contract,
+    generate_proofs: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -157,6 +165,17 @@ fn main() -> serde_json::Result<()> {
             &mut vec![],
             None,
         )?;
+    }
+
+    if let Some(process) = args.generate_proofs {
+        for i in 0..rewards.len() {
+            let proofs = proof_from_tree(&vec![i], &merkle_tree.layers());
+            let mut built = "".to_string();
+            for proof in proofs {
+                built = built + &(proof.to_string() + ", ");
+            }
+            println!("{}: [{}]", rewards[i].address, built);
+        }
     }
 
     Ok(())

@@ -1,2 +1,2 @@
-pub mod governance;
+pub mod airdrop;
 pub mod minter;

@@ -4,24 +4,41 @@ use mock_band::contract::*;
 use network_integration::{
     contract_helpers::minter::get_balance,
     utils::{
-        generate_label, print_contract, print_header, ACCOUNT_KEY, BONDS_FILE, GAS, MOCK_BAND_FILE,
-        ORACLE_FILE, SNIP20_FILE, STORE_GAS, VIEW_KEY,
+        generate_label,
+        print_contract,
+        print_header,
+        ACCOUNT_KEY,
+        BONDS_FILE,
+        GAS,
+        MOCK_BAND_FILE,
+        ORACLE_FILE,
+        SNIP20_FILE,
+        STORE_GAS,
+        VIEW_KEY,
     },
 };
-use query_authentication::transaction::PubKey;
-use query_authentication::viewing_keys::ViewingKey;
-use query_authentication::{permit::Permit, transaction::PermitSignature};
+use query_authentication::{
+    permit::Permit,
+    transaction::{PermitSignature, PubKey},
+    viewing_keys::ViewingKey,
+};
 use secretcli::{
     cli_types::NetContract,
     secretcli::{account_address, create_permit, handle, init, query, Report},
 };
 use serde::Serialize;
 use serde_json::Result;
-use shade_protocol::contract_interfaces::bonds::{self, AccountPermitMsg, FillerMsg};
-use shade_protocol::contract_interfaces::oracles::band::{self};
-use shade_protocol::contract_interfaces::oracles::oracle::{self, InitMsg as OracleInitMsg};
-use shade_protocol::contract_interfaces::snip20::{self, InitConfig, InitMsg, InitialBalance};
-use shade_protocol::utils::asset::Contract;
+use shade_protocol::{
+    contract_interfaces::{
+        bonds::{self, AccountPermitMsg, FillerMsg},
+        oracles::{
+            band::{self},
+            oracle::{self, InitMsg as OracleInitMsg},
+        },
+        snip20::{self, InitConfig, InitMsg, InitialBalance},
+    },
+    utils::asset::Contract,
+};
 use std::{
     borrow::Borrow,
     io::{self, Repeat, Write},
@@ -710,16 +727,16 @@ fn print_bond_opps(bonds: &NetContract, reports: &mut Vec<Report>) -> Result<()>
     if let bonds::QueryAnswer::BondOpportunities { bond_opportunities } = opp_query {
         let opp_iter = bond_opportunities.iter();
         for bond in opp_iter {
-            println!("\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n Minting Bond: {}\n",
-            bond.deposit_denom.token_info.symbol,
-            bond.start_time,
-            bond.end_time,
-            bond.bonding_period,
-            bond.discount,
-            bond.issuance_limit.checked_sub(bond.amount_issued).unwrap(),
-            bond.minting_bond,
-
-        )
+            println!(
+                "\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n Minting Bond: {}\n",
+                bond.deposit_denom.token_info.symbol,
+                bond.start_time,
+                bond.end_time,
+                bond.bonding_period,
+                bond.discount,
+                bond.issuance_limit.checked_sub(bond.amount_issued).unwrap(),
+                bond.minting_bond,
+            )
         }
     }
 
@@ -746,16 +763,17 @@ fn print_pending_bonds(bonds: &NetContract, reports: &mut Vec<Report>) -> Result
     if let bonds::QueryAnswer::Account { pending_bonds } = account_query {
         let pend_iter = pending_bonds.iter();
         for pending in pend_iter {
-            println!("\nBond opp: {}\n Ends: {}\n Deposit Amount: {}\n Deposit Price: {}\n Claim Amount: {}\n Claim Price: {}\n Discount: {}\n Discount Price: {}", 
-            pending.deposit_denom.token_info.symbol,
-            pending.end_time,
-            pending.deposit_amount,
-            pending.deposit_price,
-            pending.claim_amount,
-            pending.claim_price,
-            pending.discount,
-            pending.discount_price,
-        )
+            println!(
+                "\nBond opp: {}\n Ends: {}\n Deposit Amount: {}\n Deposit Price: {}\n Claim Amount: {}\n Claim Price: {}\n Discount: {}\n Discount Price: {}",
+                pending.deposit_denom.token_info.symbol,
+                pending.end_time,
+                pending.deposit_amount,
+                pending.deposit_price,
+                pending.claim_amount,
+                pending.claim_price,
+                pending.discount,
+                pending.discount_price,
+            )
         }
     }
 
@@ -769,7 +787,6 @@ fn set_viewing_keys(
     issued_snip20: &NetContract,
     collat_snip20: &NetContract,
 ) -> Result<()> {
-
     let issued_snip_msg = snip20::HandleMsg::SetViewingKey {
         key: key.clone(),
         padding: None,
@@ -988,9 +1005,9 @@ fn add_admin(
 ) -> Result<()> {
     let new_admin = account_address(recipient)?;
 
-    let msg = bonds::HandleMsg::AddAdmin { 
-        admin_to_add: HumanAddr::from(new_admin), 
-        padding: None 
+    let msg = bonds::HandleMsg::AddAdmin {
+        admin_to_add: HumanAddr::from(new_admin),
+        padding: None,
     };
 
     print_header("message made");
@@ -1003,10 +1020,10 @@ fn add_admin(
         Some("test"),
         None,
         reports,
-        None,        
+        None,
     )?
     .1;
-    
+
     println!("Gas used: {}", add_admin_tx_info.gas_used);
 
     Ok(())
@@ -1020,11 +1037,11 @@ fn remove_admin(
 ) -> Result<()> {
     let removed_admin = account_address(recipient)?;
 
-    let msg = bonds::HandleMsg::RemoveAdmin { 
-        admin_to_remove: HumanAddr::from(removed_admin), 
-        padding: None, 
+    let msg = bonds::HandleMsg::RemoveAdmin {
+        admin_to_remove: HumanAddr::from(removed_admin),
+        padding: None,
     };
-    
+
     let remove_admin_tx_info = handle(
         &msg,
         bonds,
@@ -1034,38 +1051,33 @@ fn remove_admin(
         None,
         reports,
         None,
-    )?.1;
+    )?
+    .1;
 
     println!("Gas used: {}", remove_admin_tx_info.gas_used);
 
     Ok(())
 }
 
-fn print_config(
-    bonds: &NetContract,
-) -> Result<()> {
-    let msg = bonds::QueryMsg::Config {  };
+fn print_config(bonds: &NetContract) -> Result<()> {
+    let msg = bonds::QueryMsg::Config {};
 
-    let query_info = query(
-        &bonds,
-        msg,
-        None,
-    )?;
+    let query_info = query(&bonds, msg, None)?;
 
     if let bonds::QueryAnswer::Config { config } = query_info {
         for admin in config.admin.iter() {
             println!("Admin: {}", admin)
         }
     }
-    
+
     Ok(())
 }
 
 // fn revoke_permit(
-//     permit: 
+//     permit:
 //     bonds: &NetContract,
 //     reports: &mut Vec<Report>,
-// ) -? 
+// ) -?
 
 #[test]
 fn run_bonds_singular() -> Result<()> {
@@ -1108,7 +1120,10 @@ fn run_bonds_singular() -> Result<()> {
 
     // print_config(&bonds)?;
 
-    let msg = bonds::HandleMsg::AddAdmin { admin_to_add: HumanAddr::from(account_a.clone()), padding: None };
+    let msg = bonds::HandleMsg::AddAdmin {
+        admin_to_add: HumanAddr::from(account_a.clone()),
+        padding: None,
+    };
     let tx = handle(
         &msg,
         &bonds,
@@ -1117,10 +1132,10 @@ fn run_bonds_singular() -> Result<()> {
         Some("test"),
         None,
         &mut reports,
-        None
+        None,
     )?;
 
-//    print_header("Trying second admin");
+    //    print_header("Trying second admin");
 
     // let tx_2 = handle(
     //     &msg,
@@ -1193,14 +1208,18 @@ fn run_bonds_singular() -> Result<()> {
         assert_eq!(bond_opportunities[0].amount_issued, Uint128::zero());
         assert_eq!(bond_opportunities[0].bonding_period, 1);
         assert_eq!(bond_opportunities[0].discount, disc);
-        println!("\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n", 
-        bond_opportunities[0].deposit_denom.token_info.symbol,
-        bond_opportunities[0].start_time,
-        bond_opportunities[0].end_time,
-        bond_opportunities[0].bonding_period,
-        bond_opportunities[0].discount,
-        bond_opportunities[0].issuance_limit.checked_sub(bond_opportunities[0].amount_issued).unwrap(),
-    )
+        println!(
+            "\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n",
+            bond_opportunities[0].deposit_denom.token_info.symbol,
+            bond_opportunities[0].start_time,
+            bond_opportunities[0].end_time,
+            bond_opportunities[0].bonding_period,
+            bond_opportunities[0].discount,
+            bond_opportunities[0]
+                .issuance_limit
+                .checked_sub(bond_opportunities[0].amount_issued)
+                .unwrap(),
+        )
     }
 
     buy_bond(
@@ -1241,7 +1260,8 @@ fn run_bonds_singular() -> Result<()> {
             pending_bonds[0].deposit_denom.token_info.symbol,
             "COLL".to_string()
         );
-        println!("\nBond opp: {}\n Ends: {}\n Deposit Amount: {}\n Deposit Price: {}\n Claim Amount: {}\n Claim Price: {}\n Discount: {}\n Discount Price: {}", 
+        println!(
+            "\nBond opp: {}\n Ends: {}\n Deposit Amount: {}\n Deposit Price: {}\n Claim Amount: {}\n Claim Price: {}\n Discount: {}\n Discount Price: {}",
             pending_bonds[0].deposit_denom.token_info.symbol,
             pending_bonds[0].end_time,
             pending_bonds[0].deposit_amount,
@@ -1265,14 +1285,18 @@ fn run_bonds_singular() -> Result<()> {
         );
         assert_eq!(bond_opportunities[0].bonding_period, 1);
         assert_eq!(bond_opportunities[0].discount, disc);
-        println!("\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n", 
-        bond_opportunities[0].deposit_denom.token_info.symbol,
-        bond_opportunities[0].start_time,
-        bond_opportunities[0].end_time,
-        bond_opportunities[0].bonding_period,
-        bond_opportunities[0].discount,
-        bond_opportunities[0].issuance_limit.checked_sub(bond_opportunities[0].amount_issued).unwrap(),
-    )
+        println!(
+            "\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n",
+            bond_opportunities[0].deposit_denom.token_info.symbol,
+            bond_opportunities[0].start_time,
+            bond_opportunities[0].end_time,
+            bond_opportunities[0].bonding_period,
+            bond_opportunities[0].discount,
+            bond_opportunities[0]
+                .issuance_limit
+                .checked_sub(bond_opportunities[0].amount_issued)
+                .unwrap(),
+        )
     }
 
     let issued_snip_query_msg = snip20::QueryMsg::Balance {
@@ -1309,7 +1333,10 @@ fn run_bonds_singular() -> Result<()> {
         assert_eq!(bond_opportunities.is_empty(), true);
     }
 
-    let new_msg = bonds::HandleMsg::DisablePermit { permit: account_permit.params.key, padding: None };
+    let new_msg = bonds::HandleMsg::DisablePermit {
+        permit: account_permit.params.key,
+        padding: None,
+    };
     handle(
         &new_msg,
         &bonds,
@@ -1318,7 +1345,7 @@ fn run_bonds_singular() -> Result<()> {
         Some("test"),
         None,
         &mut reports,
-        None
+        None,
     )?;
     //query(&bonds, account_quer_msg, None)?;
 
@@ -1599,14 +1626,18 @@ fn run_bonds_singular_allowance() -> Result<()> {
         assert_eq!(bond_opportunities[0].amount_issued, Uint128::zero());
         assert_eq!(bond_opportunities[0].bonding_period, 2);
         assert_eq!(bond_opportunities[0].discount, disc);
-        println!("\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n", 
-        bond_opportunities[0].deposit_denom.token_info.symbol,
-        bond_opportunities[0].start_time,
-        bond_opportunities[0].end_time,
-        bond_opportunities[0].bonding_period,
-        bond_opportunities[0].discount,
-        bond_opportunities[0].issuance_limit.checked_sub(bond_opportunities[0].amount_issued).unwrap(),
-    )
+        println!(
+            "\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n",
+            bond_opportunities[0].deposit_denom.token_info.symbol,
+            bond_opportunities[0].start_time,
+            bond_opportunities[0].end_time,
+            bond_opportunities[0].bonding_period,
+            bond_opportunities[0].discount,
+            bond_opportunities[0]
+                .issuance_limit
+                .checked_sub(bond_opportunities[0].amount_issued)
+                .unwrap(),
+        )
     }
 
     buy_bond(
@@ -1647,7 +1678,8 @@ fn run_bonds_singular_allowance() -> Result<()> {
             pending_bonds[0].deposit_denom.token_info.symbol,
             "COLL".to_string()
         );
-        println!("\nBond opp: {}\n Ends: {}\n Deposit Amount: {}\n Deposit Price: {}\n Claim Amount: {}\n Claim Price: {}\n Discount: {}\n Discount Price: {}", 
+        println!(
+            "\nBond opp: {}\n Ends: {}\n Deposit Amount: {}\n Deposit Price: {}\n Claim Amount: {}\n Claim Price: {}\n Discount: {}\n Discount Price: {}",
             pending_bonds[0].deposit_denom.token_info.symbol,
             pending_bonds[0].end_time,
             pending_bonds[0].deposit_amount,
@@ -1671,14 +1703,18 @@ fn run_bonds_singular_allowance() -> Result<()> {
         );
         assert_eq!(bond_opportunities[0].bonding_period, 2);
         assert_eq!(bond_opportunities[0].discount, disc);
-        println!("\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n", 
-        bond_opportunities[0].deposit_denom.token_info.symbol,
-        bond_opportunities[0].start_time,
-        bond_opportunities[0].end_time,
-        bond_opportunities[0].bonding_period,
-        bond_opportunities[0].discount,
-        bond_opportunities[0].issuance_limit.checked_sub(bond_opportunities[0].amount_issued).unwrap(),
-    )
+        println!(
+            "\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n",
+            bond_opportunities[0].deposit_denom.token_info.symbol,
+            bond_opportunities[0].start_time,
+            bond_opportunities[0].end_time,
+            bond_opportunities[0].bonding_period,
+            bond_opportunities[0].discount,
+            bond_opportunities[0]
+                .issuance_limit
+                .checked_sub(bond_opportunities[0].amount_issued)
+                .unwrap(),
+        )
     }
 
     let issued_snip_query_msg = snip20::QueryMsg::Balance {
@@ -1798,14 +1834,18 @@ fn run_bonds_bad_opportunities() -> Result<()> {
         assert_eq!(bond_opportunities[0].amount_issued, Uint128::zero());
         assert_eq!(bond_opportunities[0].bonding_period, 2);
         assert_eq!(bond_opportunities[0].discount, disc);
-        println!("\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n", 
-        bond_opportunities[0].deposit_denom.token_info.symbol,
-        bond_opportunities[0].start_time,
-        bond_opportunities[0].end_time,
-        bond_opportunities[0].bonding_period,
-        bond_opportunities[0].discount,
-        bond_opportunities[0].issuance_limit.checked_sub(bond_opportunities[0].amount_issued).unwrap(),
-    )
+        println!(
+            "\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n",
+            bond_opportunities[0].deposit_denom.token_info.symbol,
+            bond_opportunities[0].start_time,
+            bond_opportunities[0].end_time,
+            bond_opportunities[0].bonding_period,
+            bond_opportunities[0].discount,
+            bond_opportunities[0]
+                .issuance_limit
+                .checked_sub(bond_opportunities[0].amount_issued)
+                .unwrap(),
+        )
     }
     print_header("Attempted to print opps");
 
@@ -1847,14 +1887,18 @@ fn run_bonds_bad_opportunities() -> Result<()> {
         assert_eq!(bond_opportunities[0].amount_issued, Uint128::zero());
         assert_eq!(bond_opportunities[0].bonding_period, 2);
         assert_eq!(bond_opportunities[0].discount, disc);
-        println!("\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n", 
-        bond_opportunities[0].deposit_denom.token_info.symbol,
-        bond_opportunities[0].start_time,
-        bond_opportunities[0].end_time,
-        bond_opportunities[0].bonding_period,
-        bond_opportunities[0].discount,
-        bond_opportunities[0].issuance_limit.checked_sub(bond_opportunities[0].amount_issued).unwrap(),
-    )
+        println!(
+            "\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n",
+            bond_opportunities[0].deposit_denom.token_info.symbol,
+            bond_opportunities[0].start_time,
+            bond_opportunities[0].end_time,
+            bond_opportunities[0].bonding_period,
+            bond_opportunities[0].discount,
+            bond_opportunities[0]
+                .issuance_limit
+                .checked_sub(bond_opportunities[0].amount_issued)
+                .unwrap(),
+        )
     }
     print_header("Attempted to print opps");
 
@@ -1896,7 +1940,8 @@ fn run_bonds_bad_opportunities() -> Result<()> {
             pending_bonds[0].deposit_denom.token_info.symbol,
             "COLL".to_string()
         );
-        println!("\nBond opp: {}\n Ends: {}\n Deposit Amount: {}\n Deposit Price: {}\n Claim Amount: {}\n Claim Price: {}\n Discount: {}\n Discount Price: {}", 
+        println!(
+            "\nBond opp: {}\n Ends: {}\n Deposit Amount: {}\n Deposit Price: {}\n Claim Amount: {}\n Claim Price: {}\n Discount: {}\n Discount Price: {}",
             pending_bonds[0].deposit_denom.token_info.symbol,
             pending_bonds[0].end_time,
             pending_bonds[0].deposit_amount,
@@ -1920,14 +1965,18 @@ fn run_bonds_bad_opportunities() -> Result<()> {
         );
         assert_eq!(bond_opportunities[0].bonding_period, 2);
         assert_eq!(bond_opportunities[0].discount, disc);
-        println!("\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n", 
-        bond_opportunities[0].deposit_denom.token_info.symbol,
-        bond_opportunities[0].start_time,
-        bond_opportunities[0].end_time,
-        bond_opportunities[0].bonding_period,
-        bond_opportunities[0].discount,
-        bond_opportunities[0].issuance_limit.checked_sub(bond_opportunities[0].amount_issued).unwrap(),
-    )
+        println!(
+            "\nBond opp: {}\n Starts: {}\n Ends: {}\n Bonding period: {}\n Discount: {}\n Amount Available: {}\n",
+            bond_opportunities[0].deposit_denom.token_info.symbol,
+            bond_opportunities[0].start_time,
+            bond_opportunities[0].end_time,
+            bond_opportunities[0].bonding_period,
+            bond_opportunities[0].discount,
+            bond_opportunities[0]
+                .issuance_limit
+                .checked_sub(bond_opportunities[0].amount_issued)
+                .unwrap(),
+        )
     }
 
     let issued_snip_query_msg = snip20::QueryMsg::Balance {

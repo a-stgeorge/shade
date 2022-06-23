@@ -1,10 +1,19 @@
-use std::{env, fs};
 use cosmwasm_std::{Binary, HumanAddr};
+use network_integration::utils::{
+    generate_label,
+    print_contract,
+    print_header,
+    GAS,
+    SNIP20_FILE,
+    STORE_GAS,
+};
+use secretcli::secretcli::{account_address, handle, init};
 use serde::{Deserialize, Serialize};
-use network_integration::utils::{GAS, generate_label, print_contract, print_header, SNIP20_FILE, STORE_GAS};
-use secretcli::secretcli::{account_address, init};
-use shade_protocol::contract_interfaces::snip20;
-use shade_protocol::contract_interfaces::snip20::{InitConfig, InitialBalance};
+use shade_protocol::contract_interfaces::{
+    snip20,
+    snip20::{InitConfig, InitialBalance},
+};
+use std::{env, fs};
 
 #[derive(Serialize, Deserialize)]
 struct Args {
@@ -14,8 +23,9 @@ struct Args {
 
     // Snip20 config
     admin: Option<HumanAddr>,
-    seed: String,
-    balances: Vec<InitialBalance>
+    seed: Option<String>,
+    balances: Vec<InitialBalance>,
+    minters: Option<Vec<HumanAddr>>
 }
 
 const NAME: &str = "Shade";
@@ -37,7 +47,10 @@ fn main() -> serde_json::Result<()> {
         symbol: SYMBOL.to_string(),
         decimals: DECIMALS,
         initial_balances: Some(args.balances),
-        prng_seed: Binary::from_base64(&args.seed).unwrap(),
+        prng_seed: match args.seed {
+            None => Binary::from("random".as_bytes()),
+            Some(seed) => Binary::from_base64(&seed).unwrap()
+        },
         config: Some(InitConfig {
             public_total_supply: Some(true),
             enable_deposit: Some(false),
@@ -56,10 +69,28 @@ fn main() -> serde_json::Result<()> {
         Some(STORE_GAS),
         Some(GAS),
         None,
-        &mut vec![]
+        &mut vec![],
     )?;
 
     print_contract(&snip);
+
+    if let Some(minters) = args.minters {
+        let msg = snip20::HandleMsg::SetMinters {
+            minters,
+            padding: None,
+        };
+
+        handle(
+            &msg,
+            &snip,
+            &args.tx_signer,
+            Some(GAS),
+            None,
+            None,
+            &mut vec![],
+            None,
+        )?;
+    }
 
     Ok(())
 }
