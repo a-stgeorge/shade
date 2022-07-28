@@ -154,6 +154,7 @@ pub enum QueryMsg {
     GetConfig {},
     Balance {},
     GetCycles {},
+    SwapAmount { index: Uint128 },
     IsCycleProfitable { amount: Uint128, index: Uint128 },
     IsAnyCycleProfitable { amount: Uint128 },
     Adapter(adapter::SubQueryMsg),
@@ -176,6 +177,13 @@ pub enum QueryAnswer {
     },
     GetCycles {
         cycles: Vec<Cycle>,
+    },
+    SwapAmount {
+        swap_amount: Uint128,
+        is_profitable: bool,
+        direction: Cycle,
+        swap_amounts: Vec<Uint128>,
+        profit: Uint128,
     },
     IsCycleProfitable {
         is_profitable: bool,

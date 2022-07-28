@@ -135,6 +135,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::GetConfig {} => to_binary(&query::config(deps)?),
         QueryMsg::Balance {} => to_binary(&query::get_balances(deps)?),
         QueryMsg::GetCycles {} => to_binary(&query::get_cycles(deps)?),
+        QueryMsg::SwapAmount { index } => to_binary(&query::swap_amount(deps, index)?),
         QueryMsg::IsCycleProfitable { amount, index } => {
             to_binary(&query::cycle_profitability(deps, amount, index)?)
         }

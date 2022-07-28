@@ -27,7 +27,9 @@ pub struct ArbPair {
     pub pair_contract: Option<Contract>,
     pub mint_info: Option<MintInfo>,
     pub token0: Contract,
+    pub token0_decimals: Uint128,
     pub token1: Contract,
+    pub token1_decimals: Uint128,
     pub dex: Dex,
 }
 
