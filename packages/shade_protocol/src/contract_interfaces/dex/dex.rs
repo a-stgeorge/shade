@@ -5,7 +5,7 @@ use crate::{
         oracles::band,
         snip20::helpers::Snip20Asset,
     },
-    math_compat::{Uint128, Uint512},
+    math_compat::{Decimal, Uint128, Uint512},
     schemars::JsonSchema,
     serde::{Deserialize, Serialize},
     utils::{
@@ -21,6 +21,14 @@ pub enum Dex {
     SiennaSwap,
     ShadeSwap,
     Mint,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct DexFees {
+    pub secret_swap: Decimal,
+    pub sienna_swap: Decimal,
+    pub shade_swap: Decimal,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

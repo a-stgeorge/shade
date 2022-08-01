@@ -15,7 +15,8 @@ use shade_protocol::{
     },
     contract_interfaces::{
         dao::adapter,
-        sky::{Config, Cycles, HandleMsg, InitMsg, QueryMsg, SelfAddr, ViewingKeys},
+        dex::dex::DexFees,
+        sky::{Config, Cycles, Fees, HandleMsg, InitMsg, QueryMsg, SelfAddr, ViewingKeys},
     },
     math_compat::{Decimal, Uint128},
     secret_toolkit::snip20::set_viewing_key_msg,
@@ -71,6 +72,13 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     ];
 
     ViewingKeys(msg.viewing_key).save(&mut deps.storage)?;
+
+    Fees(DexFees {
+        secret_swap: Decimal::permille(3),
+        sienna_swap: Decimal::permille(3),
+        shade_swap: Decimal::permille(3),
+    })
+    .save(&mut deps.storage)?;
 
     Ok(InitResponse {
         messages,
@@ -135,9 +143,9 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::GetConfig {} => to_binary(&query::config(deps)?),
         QueryMsg::Balance {} => to_binary(&query::get_balances(deps)?),
         QueryMsg::GetCycles {} => to_binary(&query::get_cycles(deps)?),
-        QueryMsg::SwapAmount { index } => to_binary(&query::swap_amount(deps, index)?),
+        QueryMsg::SwapAmount { index } => to_binary(&query::swap_amount(deps, index, None)?),
         QueryMsg::IsCycleProfitable { amount, index } => {
-            to_binary(&query::cycle_profitability(deps, amount, index)?)
+            to_binary(&query::cycle_profitability(deps, amount, index, None)?)
         }
         QueryMsg::IsAnyCycleProfitable { amount } => {
             to_binary(&query::any_cycles_profitable(deps, amount)?)

@@ -1,11 +1,17 @@
 use crate::{
+    c_std,
     contract_interfaces::{
-        dex::{dex::Dex, secretswap, shadeswap, sienna},
+        dex::{
+            dex::{Dex, DexFees},
+            secretswap,
+            shadeswap,
+            sienna,
+        },
         mint::mint,
     },
     utils::asset::Contract,
 };
-use cosmwasm_math_compat::Uint128;
+use cosmwasm_math_compat::{Uint128, Uint256};
 use cosmwasm_std::{
     to_binary,
     Api,
@@ -28,15 +34,17 @@ pub struct ArbPair {
     pub mint_info: Option<MintInfo>,
     pub token0: Contract,
     pub token0_decimals: Uint128,
+    pub token0_amount: Option<Uint128>,
     pub token1: Contract,
     pub token1_decimals: Uint128,
+    pub token1_amount: Option<Uint128>,
     pub dex: Dex,
 }
 
 impl ArbPair {
     // Returns pool amounts in a tuple where 0 is the amount for token0
     pub fn pool_amounts<S: Storage, A: Api, Q: Querier>(
-        self,
+        &mut self,
         deps: &Extern<S, A, Q>,
     ) -> StdResult<(Uint128, Uint128)> {
         match self.dex {
@@ -50,8 +58,12 @@ impl ArbPair {
                     secretswap::PoolResponse { assets, .. } => {
                         if assets[0].info.token.contract_addr.clone() == self.token0.address.clone()
                         {
+                            self.token0_amount = Some(assets[0].amount);
+                            self.token1_amount = Some(assets[1].amount);
                             Ok((assets[0].amount, assets[1].amount))
                         } else {
+                            self.token0_amount = Some(assets[1].amount);
+                            self.token1_amount = Some(assets[0].amount);
                             Ok((assets[1].amount, assets[0].amount))
                         }
                     }
@@ -72,8 +84,12 @@ impl ArbPair {
                     } => match pair.token_0 {
                         shadeswap::TokenType::CustomToken { contract_addr, .. } => {
                             if contract_addr == self.token0.address.clone() {
+                                self.token0_amount = Some(amount_0);
+                                self.token1_amount = Some(amount_1);
                                 Ok((amount_0, amount_1))
                             } else {
+                                self.token0_amount = Some(amount_1);
+                                self.token1_amount = Some(amount_0);
                                 Ok((amount_1, amount_0))
                             }
                         }
@@ -92,8 +108,12 @@ impl ArbPair {
                     sienna::PairInfoResponse { pair_info } => match pair_info.pair.token_0 {
                         sienna::TokenType::CustomToken { contract_addr, .. } => {
                             if contract_addr == self.token0.address.clone() {
+                                self.token0_amount = Some(pair_info.amount_0);
+                                self.token1_amount = Some(pair_info.amount_1);
                                 Ok((pair_info.amount_0, pair_info.amount_1))
                             } else {
+                                self.token0_amount = Some(pair_info.amount_1);
+                                self.token1_amount = Some(pair_info.amount_0);
                                 Ok((pair_info.amount_1, pair_info.amount_0))
                             }
                         }
@@ -102,6 +122,57 @@ impl ArbPair {
                 }
             }
             Dex::Mint => Err(StdError::generic_err("Not available")),
+        }
+    }
+
+    pub fn return_amount<S: Storage, A: Api, Q: Querier>(
+        &mut self,
+        deps: &Extern<S, A, Q>,
+        offer: Offer,
+        fees: DexFees,
+        exclude_fee: Option<bool>,
+    ) -> StdResult<Uint256> {
+        if self.token0_amount == None {
+            self.pool_amounts(deps)?;
+        }
+        match self.dex {
+            Dex::SecretSwap => Ok(Uint256::zero()),
+            Dex::SiennaSwap => {
+                let sienna_commision = offer.amount * fees.sienna_swap;
+                let offer_amount = Uint256::from(offer.amount.checked_sub(sienna_commision)?);
+                let mut offer_pool = Uint256::zero();
+                let mut ask_pool = Uint256::zero();
+                if offer.asset.address == self.token0.address {
+                    offer_pool = if let Some(amount) = self.token0_amount {
+                        Uint256::from(amount)
+                    } else {
+                        Uint256::zero()
+                    };
+                    ask_pool = if let Some(amount) = self.token1_amount {
+                        Uint256::from(amount)
+                    } else {
+                        Uint256::zero()
+                    };
+                } else {
+                    offer_pool = if let Some(amount) = self.token1_amount {
+                        Uint256::from(amount)
+                    } else {
+                        Uint256::zero()
+                    };
+                    ask_pool = if let Some(amount) = self.token0_amount {
+                        Uint256::from(amount)
+                    } else {
+                        Uint256::zero()
+                    };
+                }
+                let total_pool = offer_pool.checked_mul(ask_pool)?;
+                let return_amount = ask_pool
+                    .checked_sub(total_pool.checked_div(offer_pool.checked_add(offer_amount)?)?)?;
+
+                Ok(return_amount)
+            }
+            Dex::ShadeSwap => Ok(Uint256::zero()),
+            Dex::Mint => return Err(StdError::generic_err("Not available")),
         }
     }
 

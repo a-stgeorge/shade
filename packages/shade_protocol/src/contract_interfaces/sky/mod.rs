@@ -2,7 +2,7 @@
 pub mod cycles;
 
 use crate::{
-    contract_interfaces::{dao::adapter, sky::cycles::Cycle},
+    contract_interfaces::{dao::adapter, dex::dex::DexFees, sky::cycles::Cycle},
     utils::{asset::Contract, storage::plus::ItemStorage},
 };
 use cosmwasm_math_compat::{Decimal, Uint128};
@@ -34,6 +34,14 @@ pub struct ViewingKeys(pub String);
 
 impl ItemStorage for ViewingKeys {
     const ITEM: Item<'static, ViewingKeys> = Item::new("item_view_keys");
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct Fees(pub DexFees);
+
+impl ItemStorage for Fees {
+    const ITEM: Item<'static, Fees> = Item::new("item_fees");
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -82,6 +90,7 @@ pub enum HandleMsg {
         min_amount: Option<Uint128>,
         padding: Option<String>,
     },
+    //    UpdateFees {},
     SetCycles {
         cycles: Vec<Cycle>,
         padding: Option<String>,
@@ -123,6 +132,9 @@ pub enum HandleAnswer {
         status: bool,
     },
     UpdateConfig {
+        status: bool,
+    },
+    UpdateFees {
         status: bool,
     },
     SetCycles {

@@ -286,7 +286,7 @@ pub fn try_arb_cycle<S: Storage, A: Api, Q: Querier>(
 
     // don't need to check for an index out of bounds since that check will happen in
     // cycle_profitability
-    let res = cycle_profitability(deps, amount, index)?; // get profitability data from query
+    let res = cycle_profitability(deps, amount, index, None)?; // get profitability data from query
     match res {
         sky::QueryAnswer::IsCycleProfitable {
             is_profitable,

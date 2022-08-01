@@ -124,7 +124,7 @@ pub fn swap_amount<S: Storage, A: Api, Q: Querier>(
     }
     let mut pool_amounts = vec![];
     let mut max_decimals = Uint128::zero();
-    for pairs in cycles[i].pair_addrs {
+    for pairs in cycles[i].pair_addrs.clone() {
         if pairs.clone().token0_decimals > max_decimals.clone() {
             max_decimals = pairs.clone().token0_decimals;
         }
@@ -132,8 +132,8 @@ pub fn swap_amount<S: Storage, A: Api, Q: Querier>(
             max_decimals = pairs.clone().token1_decimals;
         }
     }
-    for pairs in cycles[i].pair_addrs {
-        let mut pool_tuple = pairs.pool_amounts(deps)?;
+    for pairs in cycles[i].pair_addrs.clone() {
+        let mut pool_tuple = pairs.clone().pool_amounts(deps)?;
         pool_tuple.0 =
             pool_tuple
                 .0
@@ -155,7 +155,7 @@ pub fn swap_amount<S: Storage, A: Api, Q: Querier>(
     let mut query_answer = QueryAnswer::SwapAmount {
         swap_amount: Uint128::zero(),
         is_profitable: false,
-        direction: cycles[i],
+        direction: cycles[i].clone(),
         swap_amounts: vec![],
         profit: Uint128::zero(),
     };
@@ -165,17 +165,22 @@ pub fn swap_amount<S: Storage, A: Api, Q: Querier>(
             deps,
             current_swap_amount.clone(),
             index.clone(),
-            Some(Cycles(cycles)),
+            Some(Cycles(cycles.clone())),
         )?;
-        if res.profit > last_profit {
-            query_answer = QueryAnswer::SwapAmount{
+        /*if res.profit > last_profit {
+            query_answer = QueryAnswer::SwapAmount {
                 swap_amount: current_swap_amount.clone(),
-                is_profitable
-        }
+                is_profitable,
+            }
+        }*/
     }
 
     Ok(QueryAnswer::SwapAmount {
+        is_profitable: false,
+        direction: cycles[i].clone(),
         swap_amount: Uint128::zero(),
+        swap_amounts: vec![],
+        profit: Uint128::zero(),
     })
 }
 
@@ -313,7 +318,7 @@ pub fn any_cycles_profitable<S: Storage, A: Api, Q: Querier>(
     // loop through the cycles with an index
     for index in 0..cycles.len() {
         // for each cycle, check its profitability
-        let res = cycle_profitability(deps, amount, Uint128::from(index as u128)).unwrap();
+        let res = cycle_profitability(deps, amount, Uint128::from(index as u128), None).unwrap();
         match res {
             QueryAnswer::IsCycleProfitable {
                 is_profitable,
