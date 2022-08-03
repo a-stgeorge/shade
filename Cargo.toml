@@ -6,6 +6,7 @@ members = [
   "packages/contract_harness",
   "packages/multi_test",
   "packages/multi_derive",
+  "packages/newtype_derive",
 
   # Network setups
   "contracts/airdrop",
