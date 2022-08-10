@@ -43,6 +43,7 @@ members = [
   "tools/doc2book",
 
   #"packages/deprecated_network_integration"
+  "packages/network_integration"
 ]
 
 exclude = ["packages/network_integration"]

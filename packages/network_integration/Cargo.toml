@@ -1,0 +1,26 @@
+[package]
+name = "network-integration"
+version = "0.1.0"
+authors = [
+  "Kyle Wahlberg <kyle.s.wahlberg@gmail.com",
+]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+
+[dependencies]
+colored = "2.0.0"
+cosmwasm-math-compat = { path = "../cosmwasm_math_compat" }
+shade-protocol = { version = "0.1.0", path = "../shade_protocol", features = [] }
+secretcli = { version = "0.1.0", path = "../secretcli" }
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.67" }
+rand = { version = "0.8.4" }
+cosmwasm-std = { version = "0.10", package = "secret-cosmwasm-std" }
+query-authentication = { git = "https://github.com/securesecrets/query-authentication", tag = "v1.3.0" }
+shade_admin = { git = "https://github.com/securesecrets/shadeadmin.git", tag = "v1.0"}
+admin = { git = "https://github.com/securesecrets/shadeadmin.git", tag = "v1.0"}
