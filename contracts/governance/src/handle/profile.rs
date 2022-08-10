@@ -16,7 +16,7 @@ use shade_protocol::{
     contract_interfaces::governance::{
         profile::{Profile, UpdateProfile},
         stored_id::ID,
-        HandleAnswer,
+        ExecuteAnswer,
     },
     utils::generic_response::ResponseStatus,
 };
@@ -35,7 +35,7 @@ pub fn try_add_profile(
     profile.save(deps.storage, &id)?;
 
     Ok(
-        Response::new().set_data(to_binary(&HandleAnswer::AddProfile {
+        Response::new().set_data(to_binary(&ExecuteAnswer::AddProfile {
             status: ResponseStatus::Success,
         })?),
     )
@@ -90,7 +90,7 @@ pub fn try_set_profile(
     profile.save(deps.storage, &id)?;
 
     Ok(
-        Response::new().set_data(to_binary(&HandleAnswer::SetProfile {
+        Response::new().set_data(to_binary(&ExecuteAnswer::SetProfile {
             status: ResponseStatus::Success,
         })?),
     )

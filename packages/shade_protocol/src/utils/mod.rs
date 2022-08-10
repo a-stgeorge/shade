@@ -33,3 +33,6 @@ pub mod price;
 
 #[cfg(feature = "math")]
 pub mod calc;
+
+#[cfg(feature = "pool-math")]
+pub mod pool;

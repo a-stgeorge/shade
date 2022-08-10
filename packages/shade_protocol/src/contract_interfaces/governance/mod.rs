@@ -7,6 +7,7 @@ pub mod stored_id;
 pub mod vote;
 
 use crate::{
+    c_std::{Addr, Binary, Coin, Uint128},
     contract_interfaces::governance::{
         assembly::{Assembly, AssemblyMsg},
         contract::AllowedContract,
@@ -16,13 +17,13 @@ use crate::{
     },
     utils::{asset::Contract, generic_response::ResponseStatus},
 };
-use crate::c_std::Uint128;
-use crate::c_std::{Binary, Coin, Addr};
 
-use crate::utils::{ExecuteCallback, InstantiateCallback, Query};
-use cosmwasm_schema::{cw_serde};
-use crate::governance::proposal::Funding;
-use crate::query_auth::QueryPermit;
+use crate::{
+    governance::proposal::Funding,
+    query_auth::QueryPermit,
+    utils::{ExecuteCallback, InstantiateCallback, Query},
+};
+use cosmwasm_schema::cw_serde;
 
 #[cfg(feature = "governance-impl")]
 use crate::utils::storage::default::SingletonStorage;
@@ -247,7 +248,7 @@ impl ExecuteCallback for ExecuteMsg {
 }
 
 #[cw_serde]
-pub enum HandleAnswer {
+pub enum ExecuteAnswer {
     SetConfig { status: ResponseStatus },
     SetRuntimeState { status: ResponseStatus },
     Proposal { status: ResponseStatus },
@@ -272,7 +273,7 @@ pub enum HandleAnswer {
 #[cw_serde]
 pub struct Pagination {
     pub page: u64,
-    pub amount: u64
+    pub amount: u64,
 }
 
 #[cw_serde]
@@ -280,7 +281,7 @@ pub enum AuthQuery {
     Proposals { pagination: Pagination },
     AssemblyVotes { pagination: Pagination },
     Funding { pagination: Pagination },
-    Votes { pagination: Pagination }
+    Votes { pagination: Pagination },
 }
 
 #[remain::sorted]
@@ -294,27 +295,49 @@ pub enum QueryMsg {
 
     TotalProposals {},
 
-    Proposals { start: Uint128, end: Uint128 },
+    Proposals {
+        start: Uint128,
+        end: Uint128,
+    },
 
     TotalAssemblies {},
 
-    Assemblies { start: Uint128, end: Uint128 },
+    Assemblies {
+        start: Uint128,
+        end: Uint128,
+    },
 
     TotalAssemblyMsgs {},
 
-    AssemblyMsgs { start: Uint128, end: Uint128 },
+    AssemblyMsgs {
+        start: Uint128,
+        end: Uint128,
+    },
 
     TotalProfiles {},
 
-    Profiles { start: Uint128, end: Uint128 },
+    Profiles {
+        start: Uint128,
+        end: Uint128,
+    },
 
     TotalContracts {},
 
-    Contracts { start: Uint128, end: Uint128 },
+    Contracts {
+        start: Uint128,
+        end: Uint128,
+    },
 
-    WithVK { user: Addr, key: String, query: AuthQuery },
+    WithVK {
+        user: Addr,
+        key: String,
+        query: AuthQuery,
+    },
 
-    WithPermit { permit: QueryPermit, query: AuthQuery },
+    WithPermit {
+        permit: QueryPermit,
+        query: AuthQuery,
+    },
 }
 
 impl Query for QueryMsg {
@@ -324,30 +347,56 @@ impl Query for QueryMsg {
 #[cw_serde]
 pub struct ResponseWithID<T> {
     pub prop_id: Uint128,
-    pub data: T
+    pub data: T,
 }
 
 #[cw_serde]
 pub enum QueryAnswer {
-    Config { config: Config },
+    Config {
+        config: Config,
+    },
 
-    Proposals { props: Vec<Proposal> },
+    Proposals {
+        props: Vec<Proposal>,
+    },
 
-    Assemblies { assemblies: Vec<Assembly> },
+    Assemblies {
+        assemblies: Vec<Assembly>,
+    },
 
-    AssemblyMsgs { msgs: Vec<AssemblyMsg> },
+    AssemblyMsgs {
+        msgs: Vec<AssemblyMsg>,
+    },
 
-    Profiles { profiles: Vec<Profile> },
+    Profiles {
+        profiles: Vec<Profile>,
+    },
 
-    Contracts { contracts: Vec<AllowedContract> },
+    Contracts {
+        contracts: Vec<AllowedContract>,
+    },
 
-    Total { total: Uint128 },
+    Total {
+        total: Uint128,
+    },
 
-    UserProposals { props: Vec<ResponseWithID<Proposal>>, total: Uint128 },
+    UserProposals {
+        props: Vec<ResponseWithID<Proposal>>,
+        total: Uint128,
+    },
 
-    UserAssemblyVotes { votes: Vec<ResponseWithID<Vote>>, total: Uint128 },
+    UserAssemblyVotes {
+        votes: Vec<ResponseWithID<Vote>>,
+        total: Uint128,
+    },
 
-    UserFunding { funds: Vec<ResponseWithID<Funding>>, total: Uint128 },
+    UserFunding {
+        funds: Vec<ResponseWithID<Funding>>,
+        total: Uint128,
+    },
 
-    UserVotes { votes: Vec<ResponseWithID<Vote>>, total: Uint128 },
+    UserVotes {
+        votes: Vec<ResponseWithID<Vote>>,
+        total: Uint128,
+    },
 }

@@ -1,8 +1,9 @@
-use crate::contract_interfaces::governance::stored_id::ID;
-use crate::c_std::Uint128;
-use crate::c_std::{StdError, StdResult, Storage};
+use crate::{
+    c_std::{StdError, StdResult, Storage, Uint128},
+    contract_interfaces::governance::stored_id::ID,
+};
 
-use cosmwasm_schema::{cw_serde};
+use cosmwasm_schema::cw_serde;
 
 #[cfg(feature = "governance-impl")]
 use crate::utils::storage::default::BucketStorage;
@@ -77,18 +78,11 @@ impl Profile {
         ProfileData::load(storage, &id.to_be_bytes())
     }
 
-    pub fn save_data(
-        storage: &mut dyn Storage,
-        id: &Uint128,
-        data: ProfileData,
-    ) -> StdResult<()> {
+    pub fn save_data(storage: &mut dyn Storage, id: &Uint128, data: ProfileData) -> StdResult<()> {
         data.save(storage, &id.to_be_bytes())
     }
 
-    pub fn assembly_voting(
-        storage: &dyn Storage,
-        id: &Uint128,
-    ) -> StdResult<Option<VoteProfile>> {
+    pub fn assembly_voting(storage: &dyn Storage, id: &Uint128) -> StdResult<Option<VoteProfile>> {
         Ok(VoteProfileType::load(storage, COMMITTEE_PROFILE_KEY, &id.to_be_bytes())?.0)
     }
 
@@ -139,7 +133,7 @@ impl BucketStorage for ProfileData {
 }
 
 #[cfg(feature = "governance-impl")]
-#[cw_serde]// NOTE: 100% = Uint128::new(10000)
+#[cw_serde] // NOTE: 100% = Uint128::new(10000)
 pub struct VoteProfile {
     // Deadline for voting
     pub deadline: u64,
@@ -152,7 +146,8 @@ pub struct VoteProfile {
 }
 
 #[cfg(feature = "governance-impl")]
-#[cw_serde]struct VoteProfileType(pub Option<VoteProfile>);
+#[cw_serde]
+struct VoteProfileType(pub Option<VoteProfile>);
 
 #[cfg(feature = "governance-impl")]
 impl NaiveBucketStorage for VoteProfileType {}
@@ -171,7 +166,8 @@ pub struct FundProfile {
 }
 
 #[cfg(feature = "governance-impl")]
-#[cw_serde]struct FundProfileType(pub Option<FundProfile>);
+#[cw_serde]
+struct FundProfileType(pub Option<FundProfile>);
 
 #[cfg(feature = "governance-impl")]
 impl BucketStorage for FundProfileType {

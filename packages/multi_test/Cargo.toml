@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = [
    "hoomp <flammable.shower939@anonaddy.me>"
 ]
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

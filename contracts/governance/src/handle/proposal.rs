@@ -28,8 +28,8 @@ use shade_protocol::{
             stored_id::UserID,
             vote::{ReceiveBalanceMsg, TalliedVotes, Vote},
             Config,
+            ExecuteAnswer,
             ExecuteMsg::Receive,
-            HandleAnswer,
         },
         staking::snip20_staking,
     },
@@ -71,9 +71,11 @@ pub fn try_proposal(
 
     try_assembly_proposal(deps, env, info, Uint128::zero(), title, metadata, msgs)?;
 
-    Ok(Response::new().set_data(to_binary(&HandleAnswer::Proposal {
-        status: ResponseStatus::Success,
-    })?))
+    Ok(
+        Response::new().set_data(to_binary(&ExecuteAnswer::Proposal {
+            status: ResponseStatus::Success,
+        })?),
+    )
 }
 
 pub fn try_trigger(
@@ -113,7 +115,7 @@ pub fn try_trigger(
 
     Ok(Response::new()
         .add_submessages(messages)
-        .set_data(to_binary(&HandleAnswer::Trigger {
+        .set_data(to_binary(&ExecuteAnswer::Trigger {
             status: ResponseStatus::Success,
         })?))
 }
@@ -138,7 +140,7 @@ pub fn try_cancel(
         return Err(StdError::generic_err("unauthorized"));
     }
 
-    Ok(Response::new().set_data(to_binary(&HandleAnswer::Cancel {
+    Ok(Response::new().set_data(to_binary(&ExecuteAnswer::Cancel {
         status: ResponseStatus::Success,
     })?))
 }
@@ -352,7 +354,7 @@ pub fn try_update(
     // Save new status
     Proposal::save_status(deps.storage, &proposal, new_status.clone())?;
 
-    Ok(Response::new().set_data(to_binary(&HandleAnswer::Update {
+    Ok(Response::new().set_data(to_binary(&ExecuteAnswer::Update {
         status: ResponseStatus::Success,
     })?))
 }
@@ -457,7 +459,7 @@ pub fn try_receive_funding(
         )?);
     }
 
-    Ok(Response::new().set_data(to_binary(&HandleAnswer::Receive {
+    Ok(Response::new().set_data(to_binary(&ExecuteAnswer::Receive {
         status: ResponseStatus::Success,
     })?))
 }
@@ -506,7 +508,7 @@ pub fn try_claim_funding(
             None,
             &funding_token,
         )?)
-        .set_data(to_binary(&HandleAnswer::ClaimFunding {
+        .set_data(to_binary(&ExecuteAnswer::ClaimFunding {
             status: ResponseStatus::Success,
         })?))
 }
@@ -571,7 +573,7 @@ pub fn try_receive_vote(
     UserID::add_vote(deps.storage, sender.clone(), proposal.clone())?;
 
     Ok(
-        Response::new().set_data(to_binary(&HandleAnswer::ReceiveBalance {
+        Response::new().set_data(to_binary(&ExecuteAnswer::ReceiveBalance {
             status: ResponseStatus::Success,
         })?),
     )

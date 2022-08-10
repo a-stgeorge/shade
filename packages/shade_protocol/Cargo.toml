@@ -7,7 +7,7 @@ authors = [
   "Kyle Wahlberg <kyle.s.wahlberg@gmail.com>",
   "Jack Sisson <sissonjack67@gmail.com>",
 ]
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -21,6 +21,7 @@ dao-utils = ["snip20"]
 errors = []
 flexible_msg = []
 math = []
+pool-math = ["storage_plus"]
 storage = []
 storage_plus = ["storage", "dep:secret-storage-plus"]
 query_auth_lib = ["dep:query-authentication"]
@@ -69,6 +70,7 @@ adapter          = ["interface"]
 snip20           = ["query_auth_impl", "dep:base64"]
 query_auth       = ["interface", "query_auth_lib", "dep:remain"]
 snip20_staking   = ["interface", "implementation"]#TODO: fix messy feature
+snip20_overseer  = ["snip20"]
 sky              = ["snip20", "dex", "dao"]
 dao              = ["interface", "cosmwasm-std/staking"]
 shade_admin      = ["dep:shade-admin"]
@@ -77,10 +79,11 @@ stargate = ["cosmwasm-std/stargate"]
 
 # Protocol Implementation Contracts
 # Used in internal smart contracts
-governance-impl = ["implementation", "governance"]
-snip20-impl     = ["snip20", "query_auth_impl"]
-query_auth_impl = ["implementation", "query_auth", "dep:base64"]
-sky-utils        = ["implementation", "sky"]
+governance-impl      = ["implementation", "governance"]
+snip20-impl          = ["snip20", "query_auth_impl"]
+snip20-overseer-impl = ["implementation", "snip20_overseer", "math"]
+query_auth_impl      = ["implementation", "query_auth", "dep:base64"]
+sky-utils            = ["implementation", "sky"]
 
 # for quicker tests, cargo test --lib
 # for more explicit tests, cargo test --features=backtraces

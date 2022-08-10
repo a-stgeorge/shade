@@ -23,7 +23,7 @@ use shade_protocol::{
         proposal::{Proposal, ProposalMsg, Status},
         stored_id::{UserID, ID},
         vote::Vote,
-        HandleAnswer,
+        ExecuteAnswer,
         MSG_VARIABLE,
     },
     utils::{generic_response::ResponseStatus, storage::default::BucketStorage},
@@ -73,7 +73,7 @@ pub fn try_assembly_vote(
     UserID::add_assembly_vote(deps.storage, sender.clone(), proposal.clone())?;
 
     Ok(
-        Response::new().set_data(to_binary(&HandleAnswer::AssemblyVote {
+        Response::new().set_data(to_binary(&ExecuteAnswer::AssemblyVote {
             status: ResponseStatus::Success,
         })?),
     )
@@ -189,7 +189,7 @@ pub fn try_assembly_proposal(
     prop.save(deps.storage)?;
 
     Ok(
-        Response::new().set_data(to_binary(&HandleAnswer::AssemblyProposal {
+        Response::new().set_data(to_binary(&ExecuteAnswer::AssemblyProposal {
             status: ResponseStatus::Success,
         })?),
     )
@@ -224,7 +224,7 @@ pub fn try_add_assembly(
     .save(deps.storage, &id)?;
 
     Ok(
-        Response::new().set_data(to_binary(&HandleAnswer::AddAssembly {
+        Response::new().set_data(to_binary(&ExecuteAnswer::AddAssembly {
             status: ResponseStatus::Success,
         })?),
     )
@@ -272,7 +272,7 @@ pub fn try_set_assembly(
     assembly.save(deps.storage, &id)?;
 
     Ok(
-        Response::new().set_data(to_binary(&HandleAnswer::SetAssembly {
+        Response::new().set_data(to_binary(&ExecuteAnswer::SetAssembly {
             status: ResponseStatus::Success,
         })?),
     )
