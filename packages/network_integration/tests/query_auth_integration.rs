@@ -33,7 +33,7 @@ fn setup_contracts(
     NetContract,
 )> {
     println!("Starting setup of account_addresses");
-    io::stdout().flush();
+    io::stdout().flush().unwrap();
     let account_a = account_address(ACCOUNT_KEY)?;
     let account_admin = account_address(ADMIN_KEY)?;
     let account_super = account_address(SUPER_ADMIN_KEY)?;
@@ -318,8 +318,11 @@ fn print_config(
 
 #[test]
 fn run_query_auth_integration() -> Result<()> {
-    let account_a = account_address(ACCOUNT_KEY)?;
-    let account_super = account_address(SUPER_ADMIN_KEY)?;
+    let mut reports = vec![];
+    setup_contracts(&mut reports)?;
+
+    // let account_a = account_address(ACCOUNT_KEY)?;
+    // let account_super = account_address(SUPER_ADMIN_KEY)?;
     // let mut reports = vec![];
 
     // let (query_auth, shade_admin) = setup_contracts(&reports)?;
