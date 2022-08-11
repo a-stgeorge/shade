@@ -2,11 +2,14 @@ pub mod handle;
 pub mod query;
 
 use contract_harness::harness::{query_auth::QueryAuth, admin::Admin};
+use shade_protocol::c_std::testing::mock_env;
 use shade_protocol::c_std::{
     Binary,
     HumanAddr,
     StdResult,
 };
+use shade_protocol::contract_interfaces::query_auth::RngSeed;
+use shade_protocol::contract_interfaces::query_auth::auth::Key;
 use shade_protocol::fadroma::ensemble::{ContractEnsemble, MockEnv};
 use shade_protocol::fadroma::core::ContractLink;
 use shade_protocol::query_authentication::transaction::{PermitSignature, PubKey};
@@ -79,4 +82,17 @@ pub fn get_permit() -> QueryPermit {
         sequence: None,
         memo: None
     }
+}
+
+#[test]
+fn generate_overflow() {
+    println!("Key:");
+    // let deps = mock_dependencies(20, &[]);
+    let env = mock_env("creator", &[]);
+    let entropy: [u8; 10000000000000] = [0; 10000000000000];
+    let seed = RngSeed::new(Binary::from("random".as_bytes()));
+    let key = Key::generate(&env, &seed.0, &entropy);
+
+    println!("{}", key.to_string());
+    assert!(true)
 }
