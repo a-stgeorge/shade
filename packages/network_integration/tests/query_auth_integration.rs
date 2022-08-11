@@ -318,5 +318,12 @@ fn print_config(
 
 #[test]
 fn run_query_auth_integration() -> Result<()> {
- Ok(())   
+    let account_a = account_address(ACCOUNT_KEY)?;
+    let account_super = account_address(SUPER_ADMIN_KEY)?;
+    // let mut reports = vec![];
+
+    // let (query_auth, shade_admin) = setup_contracts(&reports)?;
+
+
+    Ok(())   
 }

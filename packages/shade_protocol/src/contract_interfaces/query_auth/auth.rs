@@ -2,9 +2,11 @@ use crate::c_std::{Env, HumanAddr, StdResult, Storage};
 use crate::serde::{Deserialize, Serialize};
 use crate::schemars::JsonSchema;
 use crate::query_authentication::viewing_keys::ViewingKey;
+use cosmwasm_std::Binary;
 use secret_storage_plus::Map;
 use secret_toolkit::crypto::{Prng, sha_256};
-use crate::utils::storage::plus::MapStorage;
+use crate::utils::storage::plus::{MapStorage, ItemStorage};
+use crate::contract_interfaces::query_auth::RngSeed;
 
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq, Default, JsonSchema)]
 pub struct Key(pub String);
