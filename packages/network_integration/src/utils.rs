@@ -2,7 +2,6 @@ use colored::*;
 use rand::{distributions::Alphanumeric, Rng};
 use secretcli::{cli_types::NetContract, secretcli::query};
 use serde::Serialize;
-use shade_protocol::contract_interfaces::mint::mint;
 use std::fmt::Display;
 use std::fs;
 
@@ -50,24 +49,24 @@ pub fn print_contract(contract: &NetContract) {
     );
 }
 
-pub fn print_epoch_info(minter: &NetContract) {
-    println!("\tEpoch information");
-    let msg = mint::QueryMsg::Limit {};
+// pub fn print_epoch_info(minter: &NetContract) {
+//     println!("\tEpoch information");
+//     let msg = mint::QueryMsg::Limit {};
 
-    let query: mint::QueryAnswer = query(minter, &msg, None).unwrap();
+//     let query: mint::QueryAnswer = query(minter, &msg, None).unwrap();
 
-    if let mint::QueryAnswer::Limit {
-        minted,
-        limit,
-        last_refresh,
-    } = query
-    {
-        println!(
-            "\tLast Refresh: {}\n\tMinted/Limit: {}/{}",
-            last_refresh, minted, limit
-        );
-    }
-}
+//     if let mint::QueryAnswer::Limit {
+//         minted,
+//         limit,
+//         last_refresh,
+//     } = query
+//     {
+//         println!(
+//             "\tLast Refresh: {}\n\tMinted/Limit: {}/{}",
+//             last_refresh, minted, limit
+//         );
+//     }
+// }
 
 pub fn print_struct<Printable: Serialize>(item: Printable) {
     println!("{}", serde_json::to_string_pretty(&item).unwrap());
