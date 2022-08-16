@@ -220,7 +220,7 @@ fn default_permit() {
 #[test]
 fn disable_permit_vk() {
     let mut env = TestingEnv::new();
-    env.set_runstate("admin", ContractStatus::Default).unwrap();
+    env.set_runstate("admin", ContractStatus::DisablePermit).unwrap();
 
     let vk = env.create_vk("user").unwrap();
     assert!(env.verify_vk("user", vk.clone()).unwrap());
