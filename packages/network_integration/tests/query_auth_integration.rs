@@ -3,7 +3,7 @@ use cosmwasm_std::{to_binary, Binary, HumanAddr, Uint128 as prevUint128};
 use network_integration::{
     utils::{
         generate_label, print_header, ACCOUNT_KEY, GAS,
-        STORE_GAS, SHD_ADMIN_FILE, QUERY_AUTH_FILE,
+        STORE_GAS, SHD_ADMIN_FILE, QUERY_AUTH_FILE, SNIP20_FILE
     },
 };
 use query_authentication::transaction::PubKey;
@@ -14,7 +14,7 @@ use secretcli::{
 };
 use serde::Serialize;
 use serde_json::Result;
-use shade_protocol::contract_interfaces::query_auth;
+use shade_protocol::contract_interfaces::{query_auth, snip20::{InitConfig, self}};
 use shade_admin::admin;
 use shade_protocol::utils::asset::Contract;
 use std::{
@@ -40,6 +40,37 @@ fn setup_contracts(
 
     print_header("Set up account_addresses");
 
+    print_header("Initializing snip20s");
+    let issu_snip_init_msg = snip20::InitMsg {
+        name: "test_issu".to_string(),
+        admin: None,
+        symbol: "ISSU".to_string(),
+        decimals: 6,
+        initial_balances: None,
+        prng_seed: Default::default(),
+        config: Some(InitConfig {
+            public_total_supply: Some(true),
+            enable_deposit: Some(true),
+            enable_redeem: Some(true),
+            enable_mint: Some(true),
+            enable_burn: Some(false),
+            enable_transfer: Some(true)
+        }),
+    };
+
+    print_header("Issued snip init");
+    let issu_snip = init(
+        &issu_snip_init_msg,
+        SNIP20_FILE,
+        &*generate_label(8),
+        ACCOUNT_KEY,
+        Some(STORE_GAS),
+        Some(GAS),
+        Some("test"),
+        reports,
+    )?;
+
+
     let shade_admin_init_msg = admin::InitMsg { };
 
     let shade_admin = init(
@@ -52,6 +83,9 @@ fn setup_contracts(
         Some("test"),
         reports,
     )?;
+
+    print_header("Set up admin");
+
 
     let query_auth_init_msg = query_auth::InitMsg {
         admin_auth: Contract {

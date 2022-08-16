@@ -16,7 +16,7 @@ pub const INITIALIZER_FILE: &str = "../../compiled/initializer.wasm.gz";
 pub const MINT_FILE: &str = "../../compiled/mint.wasm.gz";
 pub const STAKING_FILE: &str = "../../compiled/staking.wasm.gz";
 pub const SHD_STAKING_FILE: &str = "../../compiled/snip20_staking.wasm.gz";
-pub const SHD_ADMIN_FILE: &str = "../../compiled/shade_admin.wasm.gz";
+pub const SHD_ADMIN_FILE: &str = "../../compiled/admin.wasm.gz";
 pub const QUERY_AUTH_FILE: &str = "../../compiled/query_auth.wasm.gz";
 
 pub const STORE_GAS: &str = "10000000";

@@ -1,5 +1,8 @@
 pub mod handle;
 pub mod query;
+pub mod integration;
+
+use std::mem::size_of_val;
 
 use contract_harness::harness::{query_auth::QueryAuth, admin::Admin};
 use shade_protocol::c_std::testing::mock_env;
@@ -88,10 +91,14 @@ pub fn get_permit() -> QueryPermit {
 fn generate_overflow() {
     println!("Key:");
     // let deps = mock_dependencies(20, &[]);
-    let env = mock_env("creator", &[]);
-    let entropy: [u8; 10000000000000] = [0; 10000000000000];
+    let env = mock_env("creator00000000000000000000000000000000000000000000000000000000", &[]);
+    let entropy: [u8; 2053672] = [0; 2053672];
     let seed = RngSeed::new(Binary::from("random".as_bytes()));
     let key = Key::generate(&env, &seed.0, &entropy);
+    println!("{}", size_of_val(&entropy));
+    println!("{}", seed.0.len());
+    println!("{}", env.message.sender.len());
+    // let entropy2: [u8; 10000000] = [0; 10000000];
 
     println!("{}", key.to_string());
     assert!(true)
