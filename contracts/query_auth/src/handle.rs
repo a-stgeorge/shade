@@ -27,7 +27,7 @@ use shade_protocol::{
 };
 use shade_protocol::utils::asset::Contract;
 
-pub fn user_authorized<S: Storage, A: Api, Q: Querier>(
+fn user_authorized<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>, 
     env: Env, 
     contract: Contract
