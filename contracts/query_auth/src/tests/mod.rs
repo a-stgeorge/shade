@@ -1,3 +1,4 @@
+pub mod integration;
 pub mod handle;
 pub mod query;
 pub mod integration;
