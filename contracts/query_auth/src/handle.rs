@@ -27,9 +27,11 @@ use shade_protocol::{
 };
 use shade_protocol::utils::asset::Contract;
 
-fn user_authorized<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>, env: Env) -> StdResult<bool> {
-    let contract = Admin::load(&deps.storage)?.0;
-
+pub fn user_authorized<S: Storage, A: Api, Q: Querier>(
+    deps: &Extern<S, A, Q>, 
+    env: Env, 
+    contract: Contract
+) -> StdResult<bool> {
     let authorized_users: AuthorizedUsersResponse = shade_admin::admin::QueryMsg::GetAuthorizedUsers {
         contract_address: env.contract.address.to_string()
     }.query(&deps.querier, contract.code_hash, contract.address)?;
@@ -42,7 +44,12 @@ pub fn try_set_admin<S: Storage, A: Api, Q: Querier>(
     env: Env,
     admin: Contract,
 ) -> StdResult<HandleResponse> {
-    if  !user_authorized(&deps, env)? {
+    let cur_admin = Admin::load(&deps.storage)?.0;
+    if  !user_authorized(&deps, env.clone(), cur_admin)? {
+        return Err(StdError::unauthorized());
+    }
+
+    if !user_authorized(&deps, env, admin.clone())? {
         return Err(StdError::unauthorized());
     }
 
@@ -60,7 +67,8 @@ pub fn try_set_run_state<S: Storage, A: Api, Q: Querier>(
     env: Env,
     state: ContractStatus,
 ) -> StdResult<HandleResponse> {
-    if  !user_authorized(&deps, env)? {
+    let admin = Admin::load(&deps.storage)?.0;
+    if  !user_authorized(&deps, env, admin)? {
         return Err(StdError::unauthorized());
     }
 
