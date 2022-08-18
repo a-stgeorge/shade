@@ -1,19 +1,39 @@
 use crate::tests::{get_permit, init_contract};
 use shade_protocol::c_std::{from_binary, HumanAddr};
 use shade_protocol::fadroma::ensemble::MockEnv;
+use shade_protocol::fadroma::core::ContractLink;
 use shade_protocol::{
     contract_interfaces::{query_auth, query_auth::ContractStatus},
 };
+use contract_harness::harness::admin::Admin;
 use shade_protocol::utils::asset::Contract;
 
 #[test]
 fn set_admin() {
     let (mut chain, auth) = init_contract().unwrap();
 
+    // Set up second admin contract
+    let admin2 = chain.register(Box::new(Admin));
+    let admin2 = chain.instantiate(
+        admin2.id,
+        &shade_admin::admin::InitMsg {},
+        MockEnv::new("admin", ContractLink {
+            address: "some_addr".into(),
+            code_hash: admin2.code_hash.clone(),
+        }),
+    ).unwrap().instance;
+    chain.execute(&shade_admin::admin::HandleMsg::AddContract {
+        contract_address: auth.address.to_string()
+    }, MockEnv::new("admin", admin2.clone())).unwrap();
+    chain.execute(&shade_admin::admin::HandleMsg::AddAuthorization {
+        contract_address: auth.address.to_string(),
+        admin_address: "admin".to_string()
+    }, MockEnv::new("admin", admin2.clone())).unwrap();
+
     let msg = query_auth::HandleMsg::SetAdminAuth {
         admin: Contract {
-            address: HumanAddr::from("some_addr"),
-            code_hash: "some_hash".to_string()
+            address: admin2.address,
+            code_hash: admin2.code_hash,
         },
         padding: None,
     };

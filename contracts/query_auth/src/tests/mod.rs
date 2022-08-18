@@ -1,4 +1,3 @@
-pub mod integration;
 pub mod handle;
 pub mod query;
 
