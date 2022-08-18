@@ -67,6 +67,29 @@ pub fn testing_permit_2() -> QueryPermit {
     }
 }
 
+pub fn bad_testing_permit() -> QueryPermit {
+    QueryPermit {
+        params: PermitData {
+            key: "key2".to_string(),
+            data: Binary::from_base64("eyJkaWZmZXJlbnQiOiAibXNnIn0=").unwrap(),
+        },
+        signature: PermitSignature {
+            pub_key: PubKey::new(
+                Binary::from_base64(
+                    "Ao74ojXj3NLoTsyICacAb0FJq1iHRTxKX2J/CcRuRjmK"
+                ).unwrap()
+            ),
+            signature: Binary::from_base64(
+                "yoaX1soo51GKuW6paNMP2m+Mmisi/jGFyLvHZey++XBNjrKCcp3qzeWz15MyqWG/Nru1XF9VMQLlfG6yA9V32A=="
+            ).unwrap(),
+        },
+        account_number: Some(Uint128::zero()),
+        chain_id: Some(String::from("secret-4")),
+        sequence: Some(Uint128::zero()),
+        memo: None,
+    }
+}
+
 struct TestingEnv {
     pub chain: ContractEnsemble,
     pub auth: ContractLink<HumanAddr>,
@@ -325,3 +348,16 @@ fn disable_all_permit() {
     );
 }
 
+#[test]
+fn test_bad_permit() {
+    let mut env = TestingEnv::new();
+    env.set_runstate("admin", ContractStatus::Default).unwrap();
+
+    let permit = bad_testing_permit();
+    let user = "secret186uq24ra2n7ugtfnrxkpa08j02zh2v5097rw3m";
+    let addr = HumanAddr::from(user);
+    assert_eq!(
+        env.verify_permit(addr.clone(), permit.clone()),
+        Err(StdError::generic_err("Signature verification failed"))
+    );
+}

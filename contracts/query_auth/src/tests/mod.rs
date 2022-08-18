@@ -1,7 +1,6 @@
 pub mod integration;
 pub mod handle;
 pub mod query;
-pub mod integration;
 
 use std::mem::size_of_val;
 
@@ -89,11 +88,11 @@ pub fn get_permit() -> QueryPermit {
 }
 
 #[test]
-fn generate_overflow() {
+fn test_overflow_bounds() {
     println!("Key:");
     // let deps = mock_dependencies(20, &[]);
-    let env = mock_env("creator00000000000000000000000000000000000000000000000000000000", &[]);
-    let entropy: [u8; 2053672] = [0; 2053672];
+    let env = mock_env("creator", &[]);
+    let entropy: [u8; 2053672] = [0; 2053672]; // Maximum acceptable array size, anything larger causes stack overflow.
     let seed = RngSeed::new(Binary::from("random".as_bytes()));
     let key = Key::generate(&env, &seed.0, &entropy);
     println!("{}", size_of_val(&entropy));
