@@ -122,7 +122,7 @@ pub fn update(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> StdRe
 }
 
 pub fn rebalance(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> StdResult<Response> {
-    println!("TREASURY REBALANCE");
+    println!("\n\t\t\t\t\t\tTREASURY REBALANCE\n");
     let viewing_key = VIEWING_KEY.load(deps.storage)?;
     let self_address = SELF_ADDRESS.load(deps.storage)?;
 
@@ -201,6 +201,8 @@ pub fn rebalance(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> St
             )?;
         }
 
+        println!("MANAGER BAL: {}", balance);
+
         let allowance = allowance_query(
             &deps.querier,
             env.contract.address.clone(),
@@ -235,11 +237,11 @@ pub fn rebalance(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> St
                 portion_allowance += allowance;
             }
         }
-        println!(
-            "218 amount_balance {} amount_allowance {}, poriton_bal {}, portion allow {}",
-            amount_balance, amount_allowance, portion_balance, portion_allowance,
-        );
     }
+    println!(
+        "218 amount_balance {} amount_allowance {}, poriton_bal {}, portion allow {}",
+        amount_balance, amount_allowance, portion_balance, portion_allowance,
+    );
 
     if save_allowances {
         ALLOWANCES.save(deps.storage, asset.clone(), &allowances)?;

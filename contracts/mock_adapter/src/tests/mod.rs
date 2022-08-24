@@ -314,6 +314,7 @@ pub fn dao_int_gains_losses(
     }
     treasury::update_exec(&mut app, "admin", &contracts, "SSCRT".to_string()).unwrap();
     let bals = system_balance(&app, &contracts, "SSCRT".to_string());
+    println!("{:?}", bals);
     //assert_eq!(bals, expected_in_between_updates, "AFTER FIRST UPDATE");
     for tm in 0..num_managers {
         treasury_manager::update_exec(
@@ -478,7 +479,7 @@ dao_tests_gains_losses! {
         ]),
         Uint128::new(100),
         vec![0, 1, 2, 3, 5, 7, 10, 12, 16],
-        vec![true; 11],
+        vec![true; 9],
         (Uint128::new(528), vec![
             (Uint128::new(180), vec![
                 Uint128::new(18),

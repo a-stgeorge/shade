@@ -379,12 +379,12 @@ pub fn claim(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> StdRes
 }
 
 pub fn update(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> StdResult<Response> {
+    println!("\n\t\t\t\t\t\t\tMANAGER UPDATE\n");
     let config = CONFIG.load(deps.storage)?;
 
     let full_asset = ASSETS.load(deps.storage, asset.clone())?;
 
     let mut allocations = ALLOCATIONS.load(deps.storage, asset.clone())?;
-    println!("354 {:?}", allocations[0]);
 
     // Build metadata
     let mut amount_total = Uint128::zero();
@@ -492,13 +492,12 @@ pub fn update(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> StdRe
             AllocationType::Portion => std::cmp::Ordering::Equal,
         },
     });
-    println!("440 allocations {:?}", allocations);
 
     let mut amount_sending_out = Uint128::zero();
     for adapter in allocations.clone() {
         println!("ADAPTER REBALANCE {}", adapter.nick.unwrap());
         println!("445 total {}", total.u128());
-        println!("446 adapter.amount {}", adapter.amount);
+        println!("446 adapter.balance {}", adapter.balance);
         let desired_amount = match adapter.alloc_type {
             AllocationType::Amount => {
                 amount_sending_out += adapter.amount;
@@ -514,6 +513,7 @@ pub fn update(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> StdRe
                 }
             }
         };
+        println!("AMOUNT SENDING OUT {}", amount_sending_out);
         let threshold = desired_amount.multiply_ratio(adapter.tolerance, 10u128.pow(18));
         println!("437 desired_amount {}", desired_amount);
 
@@ -522,8 +522,10 @@ pub fn update(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> StdRe
 
         // Under Funded -- send balance then allowance
         if available < desired_amount {
+            println!("ADAPTER UNDERFUNDED");
             let mut desired_input = desired_amount - available;
             if desired_input <= threshold {
+                println!("THRESHOLD SKIP");
                 continue;
             }
 
@@ -831,7 +833,7 @@ pub fn unbond(
         &full_asset.contract.clone(),
     )?;
 
-    println!("MANAGER UNBOND {} RES {}", amount, reserves);
+    println!("\n\t\t\t\t\t\tMANAGER UNBOND {} RES {}\n", amount, reserves);
 
     // Remove pending unbondings from reserves
     if reserves > other_unbondings {
@@ -842,14 +844,9 @@ pub fn unbond(
 
     let mut messages = vec![];
 
-    println!(
-        "TREASU:RY MAN UNBOND HERE \t \t unbond amount: {}, reseresves: {}",
-        amount, reserves
-    );
     // Send available reserves to unbonder
     if !reserves.is_zero() {
         if reserves < unbond_amount {
-            //TODO: this should include 'reserves' unbonded from adapters
             messages.push(send_msg(
                 unbonder.clone(),
                 reserves,
