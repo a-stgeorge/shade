@@ -84,7 +84,6 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          target: wasm32-unknown-unknown
           components: llvm-tools-preview
 
       - uses: Swatinem/rust-cache@v2
