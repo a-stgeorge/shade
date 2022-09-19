@@ -1,30 +1,26 @@
-use shade_protocol::c_std::{Deps, Uint128};
-use shade_protocol::c_std::{
-    Api,
-    Addr,
-    StdResult,
-    Storage,
-};
-use shade_protocol::storage::{
-    bucket,
-    bucket_read,
-    singleton,
-    singleton_read,
-    Bucket,
-    ReadonlyBucket,
-    ReadonlySingleton,
-    Singleton,
-};
-use shade_protocol::contract_interfaces::airdrop::{
-    account::{
-        authenticate_ownership,
-        Account,
-        AccountPermit,
-        AddressProofMsg,
-        AddressProofPermit,
+use shade_protocol::{
+    c_std::{Addr, Api, Deps, StdResult, Storage, Uint128},
+    contract_interfaces::airdrop::{
+        account::{
+            authenticate_ownership,
+            Account,
+            AccountPermit,
+            AddressProofMsg,
+            AddressProofPermit,
+        },
+        errors::{permit_contract_mismatch, permit_key_revoked},
+        Config,
     },
-    errors::{permit_contract_mismatch, permit_key_revoked},
-    Config,
+    storage::{
+        bucket,
+        bucket_read,
+        singleton,
+        singleton_read,
+        Bucket,
+        ReadonlyBucket,
+        ReadonlySingleton,
+        Singleton,
+    },
 };
 
 pub static CONFIG_KEY: &[u8] = b"config";
@@ -184,11 +180,7 @@ pub fn validate_account_permit(
     let address = permit.validate(deps.api, None)?.as_addr(None)?;
 
     // Check that permit is not revoked
-    if is_permit_revoked(
-        deps.storage,
-        address.to_string(),
-        permit.params.key.clone(),
-    )? {
+    if is_permit_revoked(deps.storage, address.to_string(), permit.params.key.clone())? {
         return Err(permit_key_revoked(permit.params.key.as_str()));
     }
 

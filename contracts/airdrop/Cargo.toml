@@ -24,6 +24,7 @@ debug-print = ["shade-protocol/debug-print"]
 
 [dependencies]
 shade-protocol = { version = "0.1.0", path = "../../packages/shade_protocol", features = [
-  "airdrop"
+  "airdrop",
+  "snip20"
 ] }
 rs_merkle = { git = "https://github.com/FloppyDisck/rs-merkle", branch = "node_export" }

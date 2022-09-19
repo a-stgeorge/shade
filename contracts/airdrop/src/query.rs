@@ -12,13 +12,13 @@ use crate::{
     },
 };
 use shade_protocol::{
-    airdrop::{
+    c_std::{Addr, Deps, StdResult, Uint128},
+    contract_interfaces::airdrop::{
         account::{AccountKey, AccountPermit},
         claim_info::RequiredTask,
         errors::invalid_viewing_key,
         QueryAnswer,
     },
-    c_std::{Addr, Deps, StdResult, Uint128},
     query_authentication::viewing_keys::ViewingKey,
 };
 

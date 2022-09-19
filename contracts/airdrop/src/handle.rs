@@ -17,7 +17,22 @@ use crate::state::{
 };
 use rs_merkle::{algorithms::Sha256, Hasher, MerkleProof};
 use shade_protocol::{
-    airdrop::{
+    c_std::{
+        from_binary,
+        to_binary,
+        Addr,
+        Api,
+        Binary,
+        Decimal,
+        DepsMut,
+        Env,
+        MessageInfo,
+        Response,
+        StdResult,
+        Storage,
+        Uint128,
+    },
+    contract_interfaces::airdrop::{
         account::{Account, AccountKey, AddressProofMsg, AddressProofPermit},
         claim_info::RequiredTask,
         errors::{
@@ -38,21 +53,6 @@ use shade_protocol::{
         },
         Config,
         HandleAnswer,
-    },
-    c_std::{
-        from_binary,
-        to_binary,
-        Addr,
-        Api,
-        Binary,
-        Decimal,
-        DepsMut,
-        Env,
-        MessageInfo,
-        Response,
-        StdResult,
-        Storage,
-        Uint128,
     },
     query_authentication::viewing_keys::ViewingKey,
     snip20::helpers::send_msg,
