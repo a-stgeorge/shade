@@ -33,7 +33,6 @@ pub fn try_migrate(
     mut label: String,
     code_hash: String,
 ) -> StdResult<Response> {
-    // TODO: maybe randomly generate migration label
     ID::init_migration(deps.storage)?;
 
     let config = Config::load(deps.storage)?;

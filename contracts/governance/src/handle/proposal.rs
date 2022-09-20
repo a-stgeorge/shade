@@ -142,8 +142,6 @@ pub fn try_update(
     _info: MessageInfo,
     proposal: u32,
 ) -> StdResult<Response> {
-    // TODO: see if this can get cleaned up
-
     let mut history = Proposal::status_history(deps.storage, proposal)?;
     let status = Proposal::status(deps.storage, proposal)?;
     let mut new_status: Status;
