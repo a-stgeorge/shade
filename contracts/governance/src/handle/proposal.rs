@@ -58,8 +58,6 @@ pub fn try_trigger(
                     msg: prop_msg.msg.clone(),
                     funds: prop_msg.send.clone(),
                 };
-                // TODO: set to reply on error where ID is propID + 1
-                // TODO: set proposal status to success
                 messages.push(SubMsg::new(msg));
             }
         }
@@ -151,7 +149,7 @@ pub fn try_update(
     let mut new_status: Status;
 
     let assembly = Proposal::assembly(deps.storage, proposal)?;
-    let profile = Assembly::data(deps.storage, assembly)?.profile;
+    let profile_id = Assembly::data(deps.storage, assembly)?.profile;
 
     // Halt all proposal updates
     assembly_state_valid(deps.storage, assembly)?;
@@ -172,10 +170,11 @@ pub fn try_update(
 
             // Try to load, if not then assume it was updated after proposal creation but before section end
             let mut vote_conclusion: Status;
-            if let Some(settings) = Profile::assembly_voting(deps.storage, profile)? {
+
+            if let Some(settings) = Profile::assembly_voting(deps.storage, profile_id)? {
                 vote_conclusion = validate_votes(votes, total_power, settings);
             } else {
-                vote_conclusion = Status::Success
+                vote_conclusion = Status::Success;
             }
 
             if let Status::Vetoed { .. } = vote_conclusion {
@@ -185,23 +184,12 @@ pub fn try_update(
 
             // Try to load the next steps, if all are none then pass
             if let Status::Success = vote_conclusion {
-                if let Some(setting) = Profile::funding(deps.storage, profile)? {
-                    vote_conclusion = Status::Funding {
-                        amount: Uint128::zero(),
-                        start: env.block.time.seconds(),
-                        end: env.block.time.seconds() + setting.deadline,
-                    }
-                } else if let Some(setting) = Profile::public_voting(deps.storage, profile)? {
-                    vote_conclusion = Status::Voting {
-                        start: env.block.time.seconds(),
-                        end: env.block.time.seconds() + setting.deadline,
-                    }
+                if let Some(setting) = Profile::funding(deps.storage, profile_id)? {
+                    vote_conclusion = Status::funding(&setting, &env.block.time)
+                } else if let Some(setting) = Profile::public_voting(deps.storage, profile_id)? {
+                    vote_conclusion = Status::voting(&setting, &env.block.time)
                 } else {
-                    vote_conclusion = Status::Passed {
-                        start: env.block.time.seconds(),
-                        end: env.block.time.seconds()
-                            + Profile::data(deps.storage, profile)?.cancel_deadline,
-                    }
+                    vote_conclusion = Status::passed(deps.storage, profile_id, &env.block.time)?
                 }
             }
 
@@ -210,33 +198,22 @@ pub fn try_update(
         Status::Funding { amount, end, .. } => {
             // This helps combat the possibility of the profile changing
             // before another proposal is finished
-            if let Some(setting) = Profile::funding(deps.storage, profile)? {
+            if let Some(setting) = Profile::funding(deps.storage, profile_id)? {
                 // Check if deadline or funding limit reached
                 if amount >= setting.required {
-                    new_status = Status::Passed {
-                        start: env.block.time.seconds(),
-                        end: env.block.time.seconds()
-                            + Profile::data(deps.storage, profile)?.cancel_deadline,
-                    }
+                    new_status = Status::passed(deps.storage, profile_id, &env.block.time)?;
                 } else if end > env.block.time.seconds() {
                     return Err(Error::cannot_update(vec!["Funding", &end.to_string()]));
                 } else {
                     new_status = Status::Expired;
                 }
             } else {
-                new_status = Status::Passed {
-                    start: env.block.time.seconds(),
-                    end: env.block.time.seconds()
-                        + Profile::data(deps.storage, profile)?.cancel_deadline,
-                }
+                new_status = Status::passed(deps.storage, profile_id, &env.block.time)?
             }
 
             if let Status::Passed { .. } = new_status {
-                if let Some(setting) = Profile::public_voting(deps.storage, profile)? {
-                    new_status = Status::Voting {
-                        start: env.block.time.seconds(),
-                        end: env.block.time.seconds() + setting.deadline,
-                    }
+                if let Some(setting) = Profile::public_voting(deps.storage, profile_id)? {
+                    new_status = Status::voting(&setting, &env.block.time)
                 }
             }
         }
@@ -259,7 +236,7 @@ pub fn try_update(
 
             let mut vote_conclusion: Status;
 
-            if let Some(settings) = Profile::public_voting(deps.storage, profile)? {
+            if let Some(settings) = Profile::public_voting(deps.storage, profile_id)? {
                 vote_conclusion = validate_votes(votes, total_power, settings);
             } else {
                 vote_conclusion = Status::Success
@@ -267,7 +244,7 @@ pub fn try_update(
 
             if let Status::Vetoed { .. } = vote_conclusion {
                 // Send the funding amount to the treasury
-                if let Some(profile) = Profile::funding(deps.storage, profile)? {
+                if let Some(profile) = Profile::funding(deps.storage, profile_id)? {
                     // Look for the history and find funding
                     for s in history.iter() {
                         // Check if it has funding history
@@ -295,17 +272,15 @@ pub fn try_update(
                     }
                 }
             } else if let Status::Success = vote_conclusion {
-                vote_conclusion = Status::Passed {
-                    start: env.block.time.seconds(),
-                    end: env.block.time.seconds()
-                        + Profile::data(deps.storage, profile)?.cancel_deadline,
-                }
+                vote_conclusion = Status::passed(deps.storage, profile_id, &env.block.time)?;
             }
 
             new_status = vote_conclusion;
         }
         _ => return Err(Error::state_update(vec![])),
     }
+
+    // Check if new status is passed, if so, try to trigger it
 
     // Add old status to history
     history.push(status);

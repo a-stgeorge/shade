@@ -75,6 +75,7 @@ pub fn try_assembly_vote(
     )
 }
 
+// TODO: move this over to proposal
 pub fn try_assembly_proposal(
     deps: DepsMut,
     env: Env,

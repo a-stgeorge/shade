@@ -8,6 +8,7 @@ use crate::{
     },
 };
 
+use crate::governance::profile::{FundProfile, VoteProfile};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Timestamp;
 use secret_storage_plus::Map;
@@ -354,12 +355,29 @@ pub enum Status {
 }
 
 impl Status {
-    pub fn passed(storage: &dyn Storage, profile: u16, time: &Timestamp) -> StdResult<Status> {
+    pub fn passed(storage: &dyn Storage, profile: u16, time: &Timestamp) -> StdResult<Self> {
         let seconds = time.seconds();
         Ok(Self::Passed {
             start: seconds,
             end: seconds + Profile::data(storage, profile)?.cancel_deadline,
         })
+    }
+
+    pub fn funding(setting: &FundProfile, time: &Timestamp) -> Self {
+        let seconds = time.seconds();
+        Self::Funding {
+            amount: Uint128::zero(),
+            start: seconds,
+            end: seconds + setting.deadline,
+        }
+    }
+
+    pub fn voting(setting: &VoteProfile, time: &Timestamp) -> Self {
+        let seconds = time.seconds();
+        Self::Voting {
+            start: seconds,
+            end: seconds + setting.deadline,
+        }
     }
 }
 
