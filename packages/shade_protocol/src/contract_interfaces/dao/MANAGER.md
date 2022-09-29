@@ -1,4 +1,4 @@
-# DAO Adapter Interface
+# DAO Manager Interface
 * [Introduction](#Introduction)
 * [Sections](#Sections)
     * [Interface](#Interface)
@@ -8,16 +8,23 @@
             * [Update](#Update)
         * Queries
             * [Balance](#Balance)
+            * [BatchBalance](#BatchBalance)
             * [Unbonding](#Unbonding)
             * [Claimable](#Claimable)
             * [Unbondable](#Unbondable)
+            * [Reserves](#Reserves)
 
 # Introduction
-This is an interface for dapps to follow to integrate with the DAO, to receive funding fromthe treasury and later unbond those funds back to treasury when needed. 
+This interface is how external holders (e.g. treasury) will deposit funds for use by the DAO
+  - Accepting deposits as an allowance OR sent tokens
+  - managing/farming its funds
+  - Reporting accurate balances
+  - Unbonding & returning them to the manager in Unbond/Claim
+
 NOTE: Because of how the contract implements this, all messages will be enclosed as:
 ```
 {
-  "adapter": {
+  "manager": {
     <msg>
   }
 }
@@ -63,10 +70,7 @@ Claim a given amount from completed unbonding of a given asset
 ```
 
 #### Update
-Update a given asset on the adapter, to perform regular maintenance tasks if needed
-Examples:
- - `scrt_staking` - Claim rewards and restake
- - `treasury` - Rebalance funds
+Perform routine maintenance tasks on a given asset
 
 ##### Request
 |Name      |Type      |Description                                                                                                        | optional |
@@ -91,12 +95,31 @@ Get the balance of a given asset, Error if unrecognized
 |Name      |Type      |Description                                                                                                        | optional |
 |----------|----------|-------------------------------------------------------------------------------------------------------------------|----------|
 |asset     | Addr |  SNIP-20 asset to query
+|holder    | Addr |  User's balance holdings to query e.g. treasury
 
 ##### Response
 ```json
 {
   "balance": {
     "amount": "100000",
+  }
+}
+```
+
+#### BatchBalance
+Get the balances of a multiple assets, 0 if unrecognized
+
+##### Request
+|Name      |Type      |Description                                                                                                        | optional |
+|----------|----------|-------------------------------------------------------------------------------------------------------------------|----------|
+|asset     | Addr |  SNIP-20 asset to query
+|holder    | Addr |  User's balance holdings to query e.g. treasury
+
+##### Response
+```json
+{
+  "batch_balance": {
+    "amounts": ["100000", ...],
   }
 }
 ```
@@ -108,6 +131,7 @@ Get the current unbonding amount of a given asset, Error if unrecognized
 |Name      |Type      |Description                                                                                                        | optional |
 |----------|----------|-------------------------------------------------------------------------------------------------------------------|----------|
 |asset     | Addr |  SNIP-20 asset to query
+|holder    | Addr |  User's balance holdings to query e.g. treasury
 
 ##### Response
 ```json
@@ -125,6 +149,7 @@ Get the current claimable amount of a given asset, Error if unrecognized
 |Name      |Type      |Description                                                                                                        | optional |
 |----------|----------|-------------------------------------------------------------------------------------------------------------------|----------|
 |asset     | Addr | SNIP-20 asset to query
+|holder    | Addr |  User's balance holdings to query e.g. treasury
 
 ##### Response
 ```json
@@ -142,11 +167,30 @@ Get the current unbondable amount of a given asset, Error if unrecognized
 |Name      |Type      |Description                                                                                                        | optional |
 |----------|----------|-------------------------------------------------------------------------------------------------------------------|----------|
 |asset     | Addr | SNIP-20 asset to query
+|holder    | Addr |  User's balance holdings to query e.g. treasury
 
 ##### Response
 ```json
 {
   "unbondable": {
+    "amount": "100000",
+  }
+}
+```
+
+#### Reserves
+Get the current reserves of a given asset, amount currently owned by manager contract
+
+##### Request
+|Name      |Type      |Description                                                                                                        | optional |
+|----------|----------|-------------------------------------------------------------------------------------------------------------------|----------|
+|asset     | Addr | SNIP-20 asset to query
+|holder    | Addr |  User's balance holdings to query e.g. treasury
+
+##### Response
+```json
+{
+  "reserves": {
     "amount": "100000",
   }
 }
