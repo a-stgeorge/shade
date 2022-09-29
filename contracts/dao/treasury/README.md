@@ -2,25 +2,29 @@
 * [Introduction](#Introduction)
 * [Sections](#Sections)
     * [Init](#Init)
-    * [DAO Adapter](/packages/shade_protocol/src/DAO_ADAPTER.md)
     * [Interface](#Interface)
         * Messages
             * [Receive](#Receive)
             * [UpdateConfig](#UpdateConfig)
             * [RegisterAsset](#RegisterAsset)
             * [RegisterManager](#RegisterManager)
+            * [RegisterWrap](#RegisterWrap)
+            * [WrapCoins](#WrapCoins)
             * [Allowance](#Allowance)
-            * [AddAccount](#AddAccount)
-            * [CloseAccount](#CloseAccount)
+            * [Update](#Update)
+            * [SetRunLevel](#SetRunLevel)
         * Queries
             * [Config](#Config)
             * [Assets](#Assets)
             * [Allowances](#Allowances)
-            * [CurrentAllowances](#CurrentAllowances)
             * [Allowance](#Allowance)
-            * [Account](#Account)
+            * [RunLevel](#RunLevel)
+            * [Metrics](#Metrics)
+            * [Balance](#Balance)
+            * [BatchBalance](#BatchBalance)
+            * [Reserves](#Reserves)
 # Introduction
-The treasury contract holds network funds from things such as mint commission and pending airdrop funds
+The treasury contract holds all protocol owned funds, receiving fees from primitives
 
 # Sections
 

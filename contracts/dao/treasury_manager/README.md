@@ -1,19 +1,28 @@
 # Treasury Contract
 * [Introduction](#Introduction)
 * [Sections](#Sections)
-    * [DAO Adapter](/packages/shade_protocol/src/DAO_ADAPTER.md)
     * [Init](#Init)
     * [Interface](#Interface)
+        * [Manager](/packages/shade_protocol/src/MANAGER.md)
         * Messages
+            * [Receive](#Receive)
             * [UpdateConfig](#UpdateConfig)
             * [RegisterAsset](#RegisterAsset)
             * [Allocate](#Allocate)
+            * [AddHolder](#AddHolder)
+            * [RemoveHolder](#RemoveHolder)
         * Queries
             * [Config](#Config)
             * [Assets](#Assets)
+            * [Allocations](#Allocations)
             * [PendingAllowance](#PendingAllowance)
+            * [Holders](#Holders)
+            * [Holding](#Holding)
+            * [Metrics](#Metrics)
 # Introduction
-The treasury contract holds network funds from things such as mint commission and pending airdrop funds
+The treasury manager manages different holders (e.g. treasury & shd staking) funds for farming.
+Funds deposited by different configured "holders" will be credited to their "holding" for later withdraw by that holder.
+Gains earned & losses realized from farming will be credited to the treasury by default, future implementation should allow for proportional distribution
 
 # Sections
 
@@ -21,7 +30,7 @@ The treasury contract holds network funds from things such as mint commission an
 ##### Request
 |Name      |Type      |Description                                                                                                        | optional |
 |----------|----------|-------------------------------------------------------------------------------------------------------------------|----------|
-|admin     | Addr|  Admin address
+|admin_auth     | Contract |  Shade admin auth
 |viewing_key | String |  Key set on relevant SNIP-20's
 |treasury    | Addr |  treasury that is owner of funds
 

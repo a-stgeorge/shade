@@ -29,7 +29,6 @@ pub enum Action {
     SendFundsFrom,
     RealizeGains,
     RealizeLosses,
-    //TODO
     AddHolder,
     RemoveHolder,
 }
@@ -64,7 +63,6 @@ pub enum Status {
     Transferred,
 }
 
-//TODO: move accounts to treasury manager
 #[cw_serde]
 pub struct Holding {
     pub balances: Vec<Balance>,
