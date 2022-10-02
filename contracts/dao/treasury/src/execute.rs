@@ -107,11 +107,11 @@ pub fn try_update_config(
 
 pub fn update(deps: DepsMut, env: &Env, info: MessageInfo, asset: Addr) -> StdResult<Response> {
     match RUN_LEVEL.load(deps.storage)? {
+        RunLevel::Normal => rebalance(deps, env, info, asset),
         RunLevel::Migrating => migrate(deps, env, info, asset),
         RunLevel::Deactivated => {
             return Err(StdError::generic_err("Contract Deactivated"));
         }
-        RunLevel::Normal => rebalance(deps, env, info, asset),
     }
 }
 
@@ -647,6 +647,7 @@ pub fn register_manager(
     }
 
     MANAGER.save(deps.storage, contract.address.clone(), &contract)?;
+    MANAGERS.push(deps.storage, &contract.clone())?;
 
     Ok(
         Response::new().set_data(to_binary(&ExecuteAnswer::RegisterAsset {

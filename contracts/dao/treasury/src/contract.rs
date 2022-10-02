@@ -83,6 +83,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query::config(deps)?),
         QueryMsg::Assets {} => to_binary(&query::assets(deps)?),
+        QueryMsg::Managers {} => to_binary(&query::managers(deps)?),
         QueryMsg::Allowances { asset } => {
             let asset = deps.api.addr_validate(&asset)?;
             to_binary(&query::allowances(deps, asset)?)

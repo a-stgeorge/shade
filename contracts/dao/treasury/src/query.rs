@@ -163,6 +163,12 @@ pub fn assets(deps: Deps) -> StdResult<treasury::QueryAnswer> {
     })
 }
 
+pub fn managers(deps: Deps) -> StdResult<treasury::QueryAnswer> {
+    Ok(treasury::QueryAnswer::Managers {
+        managers: MANAGERS.iter(deps.storage).collect(),
+    })
+}
+
 pub fn allowances(deps: Deps, asset: Addr) -> StdResult<treasury::QueryAnswer> {
     Ok(treasury::QueryAnswer::Allowances {
         allowances: ALLOWANCES.may_load(deps.storage, asset)?.unwrap_or(vec![]),

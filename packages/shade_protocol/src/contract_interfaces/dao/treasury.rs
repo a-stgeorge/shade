@@ -4,9 +4,7 @@ use crate::utils::{
     generic_response::ResponseStatus,
 };
 
-use crate::{
-    c_std::{Addr, Binary, Coin, Uint128},
-};
+use crate::c_std::{Addr, Binary, Coin, Uint128};
 
 use crate::utils::{ExecuteCallback, InstantiateCallback, Query};
 use cosmwasm_schema::cw_serde;
@@ -184,6 +182,7 @@ pub enum ExecuteAnswer {
 pub enum QueryMsg {
     Config {},
     Assets {},
+    Managers {},
     // List of recurring allowances configured
     Allowances {
         asset: String,
@@ -218,6 +217,7 @@ impl Query for QueryMsg {
 pub enum QueryAnswer {
     Config { config: Config },
     Assets { assets: Vec<Addr> },
+    Managers { managers: Vec<Contract> },
     Allowances { allowances: Vec<AllowanceMeta> },
     Allowance { amount: Uint128 },
     RunLevel { run_level: RunLevel },

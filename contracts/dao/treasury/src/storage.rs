@@ -19,7 +19,8 @@ pub const ASSET: Map<Addr, Snip20Asset> = Map::new("asset");
 // { denom: snip20 }
 pub const WRAP: Map<String, Addr> = Map::new("wrap");
 
-pub const MANAGER: Map<Addr, Contract> = Map::new("managers");
+pub const MANAGERS: IterItem<Contract, u64> = IterItem::new_override("managers", "managers_list_2");
+pub const MANAGER: Map<Addr, Contract> = Map::new("manager");
 pub const ALLOWANCES: Map<Addr, Vec<AllowanceMeta>> = Map::new("allowances");
 
 pub const RUN_LEVEL: Item<RunLevel> = Item::new("runlevel");

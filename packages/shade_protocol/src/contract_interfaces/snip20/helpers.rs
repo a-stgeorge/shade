@@ -220,9 +220,6 @@ pub struct TokenConfig {
     pub redeem_enabled: bool,
     pub mint_enabled: bool,
     pub burn_enabled: bool,
-    // Optionals only relevant to some snip20a
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transfer_enabled: Option<bool>,
 }
 /// Returns a StdResult<TokenConfig> from performing TokenConfig query
 pub fn token_config(querier: &QuerierWrapper, contract: &Contract) -> StdResult<TokenConfig> {
@@ -242,7 +239,6 @@ pub fn token_config(querier: &QuerierWrapper, contract: &Contract) -> StdResult<
             redeem_enabled,
             mint_enabled,
             burn_enabled,
-            transfer_enabled: None,
         }),
         _ => Err(StdError::generic_err("Wrong answer")), //TODO: better error
     }
