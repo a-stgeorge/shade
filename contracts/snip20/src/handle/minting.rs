@@ -109,7 +109,9 @@ pub fn try_add_minters(
     }
 
     let mut minters = Minters::load(deps.storage)?;
-    minters.0.extend(new_minters);
+    let mut new_minters_no_duplicates = new_minters.clone();
+    new_minters_no_duplicates.retain(|x| !&minters.0.contains(x));
+    minters.0.extend(new_minters_no_duplicates);
     minters.save(deps.storage)?;
 
     Ok(Response::new().set_data(to_binary(&ExecuteAnswer::AddMinters { status: Success })?))
